@@ -146,6 +146,10 @@ int checkButtons(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count
 		
 		pressed_buttons = ctrl->buttons & ~old_buttons;
 
+		if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START)) {
+			showVSH = 1;
+		}
+
 		if(showVSH == 1) // Main VSH Menu
 		{
 			if (pressed_buttons & SCE_CTRL_DOWN)
