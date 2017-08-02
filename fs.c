@@ -1,6 +1,6 @@
 #include "fs.h"
 
-int fileExists(const char *path)
+SceInt fileExists(const char * path)
 {
 	SceUID file = sceIoOpen(path, SCE_O_RDONLY, 0777);
 	
@@ -9,11 +9,11 @@ int fileExists(const char *path)
 		sceIoClose(file);
 		return 1;
 	}
-	else
-		return 0;
+	
+	return 0;
 }
 
-int dirExists(const char *path)
+SceInt dirExists(const char * path)
 {
 	SceUID dir = sceIoDopen(path);
 	
@@ -22,37 +22,37 @@ int dirExists(const char *path)
 		sceIoDclose(dir);
 		return 1;
 	}
-	else
-		return 0;
+	
+	return 0;
 }
 
-int readFile(char *file, void *buf, int size) 
+SceInt readFile(char * file, SceVoid * buf, SceInt size) 
 {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 
 	if (fd < 0)
 		return fd;
 
-	int read = sceIoRead(fd, buf, size);
+	SceInt read = sceIoRead(fd, buf, size);
 	sceIoClose(fd);
 	
 	return read;
 }
 
-int writeFile(char *file, void *buf, int size) 
+SceInt writeFile(char * file, SceVoid * buf, SceInt size) 
 {
 	SceUID fd = sceIoOpen(file, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	
 	if (fd < 0)
 		return fd;
 
-	int written = sceIoWrite(fd, buf, size);
+	SceInt written = sceIoWrite(fd, buf, size);
 	sceIoClose(fd);
 	
 	return written;
 }
 
-int removeFile(char *file)
+SceInt removeFile(char *file)
 {
 	return sceIoRemove(file);
 }

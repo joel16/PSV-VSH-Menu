@@ -1,11 +1,16 @@
+#ifndef PSV_VSH_FS_H
+#define PSV_VSH_FS_H
+
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/io/devctl.h>
 
 #include <string.h>
 
-int fileExists(const char * path);
-int dirExists(const char * path);
-int readFile(char * file, void * buf, int size);
-int writeFile(char * file, void * buf, int size);
-int removeFile(char * file);
+SceInt fileExists(const char * path);
+SceInt dirExists(const char * path);
+SceInt readFile(char * file, SceVoid * buf, SceInt size);
+SceInt writeFile(char * file, SceVoid * buf, SceInt size);
+SceInt removeFile(char * file);
+
+#endif

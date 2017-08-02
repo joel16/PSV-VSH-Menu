@@ -11,26 +11,26 @@
 #include "draw.h"
 #include "fs.h"
 
-static int showVSH = 0;
-static int selection = 0;
-static int colour = 0;
-static uint64_t c_clock = 0, g_clock = 0;
+static SceInt showVSH = 0;
+static SceInt selection = 0;
+static SceInt colour = 0;
+static SceUInt64 c_clock = 0, g_clock = 0;
 
-static uint32_t old_buttons, pressed_buttons;
+static SceUInt32 old_buttons, pressed_buttons;
 
 static SceUID g_hooks[11];
 
 static tai_hook_ref_t ref_hook0, ref_hook1, ref_hook2, ref_hook3, ref_hook4;
 static tai_hook_ref_t power_hook1, power_hook2, power_hook3, power_hook4;
 
-static int profile_max_battery[] = {111, 111, 111, 111};
-static int profile_default[] = {266, 166, 166, 111};
-static int profile_max_performance[] = {444, 222, 222, 166};
-static int profile_game[] = {444, 222, 222, 166};
+static SceInt profile_max_battery[] = {111, 111, 111, 111};
+static SceInt profile_default[] = {266, 166, 166, 111};
+static SceInt profile_max_performance[] = {444, 222, 222, 166};
+static SceInt profile_game[] = {444, 222, 222, 166};
 
-static int* profiles[4] = {profile_max_battery, profile_default, profile_game, profile_max_performance};
+static SceInt * profiles[4] = {profile_max_battery, profile_default, profile_game, profile_max_performance};
 
-int launchAppByUriExit(char * titleid) 
+SceInt launchAppByUriExit(char * titleid) 
 {
 	char uri[32];
 	sprintf(uri, "psgm:play?titleid=%s", titleid);
@@ -49,7 +49,7 @@ static void restartVSH(void)
 	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
 }
 
-int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) 
+SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt sync) 
 {
     drawSetFrameBuf(pParam);
     
@@ -130,25 +130,21 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync)
 		}
     }
 	
-    return TAI_CONTINUE(int, ref_hook0, pParam, sync);
+    return TAI_CONTINUE(SceInt, ref_hook0, pParam, sync);
 }   
 
-int checkButtons(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count) 
+SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, SceInt count) 
 {
-	int ret;
+	SceInt ret;
 
 	if (ref_hook == 0)
 		ret = 1;
 	
 	else
 	{
-		ret = TAI_CONTINUE(int, ref_hook, port, ctrl, count);
+		ret = TAI_CONTINUE(SceInt, ref_hook, port, ctrl, count);
 		
 		pressed_buttons = ctrl->buttons & ~old_buttons;
-
-		if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START)) {
-			showVSH = 1;
-		}
 
 		if(showVSH == 1) // Main VSH Menu
 		{
@@ -203,7 +199,7 @@ int checkButtons(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count
 				scePowerRequestColdReset();
 			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS))
 				restartVSH();
-			else if (((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS)) || ((ctrl->buttons & SCE_CTRL_SELECT) && (ctrl->buttons & SCE_CTRL_DOWN)))
+			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS))
 				showVSH = 0;
 			
 			old_buttons = ctrl->buttons;
@@ -211,7 +207,7 @@ int checkButtons(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count
 		}
 		else
 		{
-			if ((ctrl->buttons & SCE_CTRL_SELECT) && (ctrl->buttons & SCE_CTRL_UP))
+			if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 			{
 				if (!(dirExists("ux0:/data/uvsh")))
 				{
@@ -250,63 +246,63 @@ int checkButtons(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count
 	return ret;
 }
 
-int scePowerSetClockFrequency_patched(tai_hook_ref_t ref_hook, int port, int freq)
+SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t ref_hook, SceInt port, SceInt freq)
 {
 	if(c_clock == -1)
-		return TAI_CONTINUE(int, ref_hook, freq);
+		return TAI_CONTINUE(SceInt, ref_hook, freq);
 	else
-		return TAI_CONTINUE(int, ref_hook, profiles[c_clock][port]);
+		return TAI_CONTINUE(SceInt, ref_hook, profiles[c_clock][port]);
 	
 	if(g_clock == -1)
-		return TAI_CONTINUE(int, ref_hook, freq);
+		return TAI_CONTINUE(SceInt, ref_hook, freq);
 	else
-		return TAI_CONTINUE(int, ref_hook, profiles[g_clock][port]);
+		return TAI_CONTINUE(SceInt, ref_hook, profiles[g_clock][port]);
 }
 
-static int keys_patched1(int port, SceCtrlData *ctrl, int count) 
+static SceInt keys_patched1(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
     return checkButtons(port, ref_hook1, ctrl, count);
 }   
 
-static int keys_patched2(int port, SceCtrlData *ctrl, int count) 
+static SceInt keys_patched2(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
     return checkButtons(port, ref_hook2, ctrl, count);
 }   
 
-static int keys_patched3(int port, SceCtrlData *ctrl, int count) 
+static SceInt keys_patched3(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
     return checkButtons(port, ref_hook3, ctrl, count);
 }   
 
-static int keys_patched4(int port, SceCtrlData *ctrl, int count) 
+static SceInt keys_patched4(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
     return checkButtons(port, ref_hook4, ctrl, count);
 }   
 
-static int power_patched1(int freq) 
+static SceInt power_patched1(SceInt freq) 
 {
     return scePowerSetClockFrequency_patched(power_hook1, 0, freq);
 }
 
-static int power_patched2(int freq) 
+static SceInt power_patched2(SceInt freq) 
 {
     return scePowerSetClockFrequency_patched(power_hook2, 1, freq);
 }
 
-static int power_patched3(int freq) 
+static SceInt power_patched3(SceInt freq) 
 {
     return scePowerSetClockFrequency_patched(power_hook3, 2, freq);
 }
 
-static int power_patched4(int freq) 
+static SceInt power_patched4(SceInt freq) 
 {
     return scePowerSetClockFrequency_patched(power_hook4, 3, freq);
 }
 
-void _start() __attribute__ ((weak, alias ("module_start")));
-int module_stop(SceSize argc, const void *args);
+SceVoid _start() __attribute__ ((weak, alias ("module_start")));
+SceInt module_stop(SceSize argc, const SceVoid * args);
 
-int module_start(SceSize argc, const void *args) 
+SceInt module_start(SceSize argc, const SceVoid * args) 
 {
 
 	g_hooks[0] = taiHookFunctionImport(&ref_hook0, 
@@ -364,7 +360,7 @@ int module_start(SceSize argc, const void *args)
 	return SCE_KERNEL_START_SUCCESS;
 }
 
-int module_stop(SceSize argc, const void *args) 
+SceInt module_stop(SceSize argc, const void *args) 
 {
 	// free hooks that didn't fail
 	if (g_hooks[0] >= 0) 

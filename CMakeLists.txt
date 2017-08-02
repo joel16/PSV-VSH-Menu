@@ -34,11 +34,11 @@ add_executable(vsh
 
 target_link_libraries(vsh
 	taihen_stub
-	SceLibKernel_stub
-	SceIofilemgr_stub
-	SceDisplay_stub
-	ScePower_stub
-	SceAppMgr_stub
+	SceLibKernel_stub_weak
+	SceIofilemgr_stub_weak
+	SceDisplay_stub_weak
+	ScePower_stub_weak
+	SceAppMgr_stub_weak
 	k
 	gcc
 )
