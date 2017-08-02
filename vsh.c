@@ -43,7 +43,7 @@ SceInt launchAppByUriExit(char * titleid)
 	return 0;
 }
 
-static void restartVSH(void) 
+static SceVoid restartVSH(SceVoid) 
 {	
 	char * const argv[] = {"restart", NULL};
 	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
@@ -219,7 +219,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					
 					if (!(fileExists("ux0:/data/uvsh/colours.bin")))
 					{
-						sprintf(buf, "%d", colour);
+						sprintf(buf, "%d", (int)colour);
 						writeFile("ux0:/data/uvsh/colours.bin", buf, 2);
 					}
 				}
@@ -360,7 +360,7 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 	return SCE_KERNEL_START_SUCCESS;
 }
 
-SceInt module_stop(SceSize argc, const void *args) 
+SceInt module_stop(SceSize argc, const SceVoid *args) 
 {
 	// free hooks that didn't fail
 	if (g_hooks[0] >= 0) 
