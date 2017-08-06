@@ -11,6 +11,8 @@
 #include "draw.h"
 #include "fs.h"
 
+#define MAX_ITEMS 7
+
 static SceInt showVSH = 0;
 static SceInt selection = 0;
 static SceInt colour = 0;
@@ -51,7 +53,7 @@ static SceVoid restartVSH(SceVoid)
 
 SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt sync) 
 {
-    drawSetFrameBuf(pParam);
+	drawSetFrameBuf(pParam);
     
 	if(showVSH == 1)
 	{
@@ -69,28 +71,26 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		else
 			drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
-		//drawStringfCenter(162, "VSH MENU COLOUR %s", readVSHColours());
 		drawStringCenter(162, "RECOVERY MENU ->");
-		drawStringCenter(178, "LOAD PROGRAM ->");
-		drawStringCenter(194, "SHUTDOWN DEVICE");
-		drawStringCenter(210, "SUSPEND DEVICE");
-		drawStringCenter(226, "REBOOT DEVICE");
-		drawStringCenter(242, "RESTART VSH");
+		drawStringCenter(178, "SHUTDOWN DEVICE");
+		drawStringCenter(194, "SUSPEND DEVICE");
+		drawStringCenter(210, "REBOOT DEVICE");
+		drawStringCenter(226, "RESTART VSH");
 		
-		drawStringCenter(258, "EXIT");
+		drawStringCenter(242, "EXIT");
 		
 		switch(selection)
 		{
 			case 0:
 				drawSetColour(WHITE, SKYBLUE);
-				if	(c_clock == 2)
+				if (c_clock == 2)
 					drawStringfCenter(130, "CPU CLOCK default");
 				else
 					drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 				break;
 			case 1:
 				drawSetColour(WHITE, SKYBLUE);
-				if	(g_clock == 2)
+				if (g_clock == 2)
 					drawStringfCenter(146, "GPU CLOCK default");
 				else
 					drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
@@ -105,27 +105,23 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				break;
 			case 3:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(178, "LOAD PROGRAM ->");
+				drawStringCenter(178, "SHUTDOWN DEVICE");
 				break;
 			case 4:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(194, "SHUTDOWN DEVICE");
+				drawStringCenter(194, "SUSPEND DEVICE");
 				break;
 			case 5:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(210, "SUSPEND DEVICE");
+				drawStringCenter(210, "REBOOT DEVICE");
 				break;
 			case 6:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(226, "REBOOT DEVICE");
+				drawStringCenter(226, "RESTART VSH");
 				break;
 			case 7:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(242, "RESTART VSH");
-				break;
-			case 8:
-				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(258, "EXIT");
+				drawStringCenter(242, "EXIT");
 				break;
 		}
     }
@@ -153,10 +149,10 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if (pressed_buttons & SCE_CTRL_UP)
 				selection -= 1;
 			
-			if (selection == 9)
+			if (selection == MAX_ITEMS + 1)
 				selection = 0;
 			if (selection == -1)
-				selection = 8;
+				selection = MAX_ITEMS;
 			
 			if (selection == 0) 
 			{
@@ -188,18 +184,17 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
 				}
 			}
-			
-			//else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				//App launch
-			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				launchAppByUriExit("PSVVSHREC");
+			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestStandby();
-			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestSuspend();
-			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestColdReset();
-			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS))
 				restartVSH();
-			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS))
 				showVSH = 0;
 			
 			old_buttons = ctrl->buttons;
@@ -209,18 +204,18 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 		{
 			if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 			{
-				if (!(dirExists("ux0:/data/uvsh")))
+				if (!(dirExists("ux0:/data/vsh")))
 				{
 					char buf[2];
 					
-					SceUID dir = sceIoDopen("ux0:/data/uvsh");
-					sceIoMkdir("ux0:/data/uvsh", 0777);
+					SceUID dir = sceIoDopen("ux0:/data/vsh");
+					sceIoMkdir("ux0:/data/vsh", 0777);
 					sceIoDclose(dir);
 					
-					if (!(fileExists("ux0:/data/uvsh/colours.bin")))
+					if (!(fileExists("ux0:/data/vsh/colours.bin")))
 					{
 						sprintf(buf, "%d", (int)colour);
-						writeFile("ux0:/data/uvsh/colours.bin", buf, 2);
+						writeFile("ux0:/data/vsh/colours.bin", buf, 2);
 					}
 				}
 				
