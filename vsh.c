@@ -1,21 +1,16 @@
-#include <psp2/appmgr.h>
-#include <psp2/ctrl.h>
-#include <psp2/display.h>
-#include <psp2/kernel/modulemgr.h>
-#include <psp2/power.h>
-#include <taihen.h>
+#include <libk/stdio.h>
 
-#include <stdio.h>
-#include <string.h>
+#include <vitasdk.h>
+#include <taihen.h>
 
 #include "draw.h"
 #include "fs.h"
+#include "utils.h"
 
-#define MAX_ITEMS 7
+#define MAX_ITEMS 9
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
-static SceInt colour = 0;
 static SceUInt64 c_clock = 0, g_clock = 0;
 
 static SceUInt32 old_buttons, pressed_buttons;
@@ -32,35 +27,38 @@ static SceInt profile_game[] = {444, 222, 222, 166};
 
 static SceInt * profiles[4] = {profile_max_battery, profile_default, profile_game, profile_max_performance};
 
-SceInt launchAppByUriExit(char * titleid) 
+static char * colourStr[] = 
 {
-	char uri[32];
-	sprintf(uri, "psgm:play?titleid=%s", titleid);
-
-	//sceKernelDelayThread(10000);
-	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-	//sceKernelDelayThread(10000);
-	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-
-	return 0;
-}
-
-static SceVoid restartVSH(SceVoid) 
-{	
-	char * const argv[] = {"restart", NULL};
-	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
-}
+	"Red",
+	"Green",
+	"Blue",
+	"Yellow",
+	"Purple",
+	"Black",
+	"White"
+};
 
 SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt sync) 
 {
 	drawSetFrameBuf(pParam);
-    
-	if(showVSH == 1)
-	{
+	
+	if (showVSH == 1)
+	{	
+		if (batteryPercent)
+		{
+			int percent = scePowerGetBatteryLifePercent();
+			drawSetColour(WHITE, getColour());
+		
+			if (percent == 100)
+				drawStringf(880, 0, "%d %%", percent);
+			else
+				drawStringf(896, 0, "%d %%", percent);
+		}
+		
 		drawSetColour(WHITE, RGB_GREEN);
 		drawStringCenter(100, "PSV VSH MENU");
 		
-		drawSetColour(WHITE, RGB_RED);
+		drawSetColour(WHITE, getColour());
 		
 		if (c_clock == 2)
 			drawStringfCenter(130, "CPU CLOCK default");
@@ -71,13 +69,14 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		else
 			drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
-		drawStringCenter(162, "RECOVERY MENU ->");
-		drawStringCenter(178, "SHUTDOWN DEVICE");
-		drawStringCenter(194, "SUSPEND DEVICE");
-		drawStringCenter(210, "REBOOT DEVICE");
-		drawStringCenter(226, "RESTART VSH");
-		
-		drawStringCenter(242, "EXIT");
+		drawStringfCenter(162, "BATTERY STATUS %s", batteryPercent? "enabled" : "disabled");
+		drawStringfCenter(178, "VSH MENU COLOUR %s", colourStr[colour]);
+		drawStringCenter(194, "RECOVERY MENU ->");
+		drawStringCenter(210, "SHUTDOWN DEVICE");
+		drawStringCenter(226, "SUSPEND DEVICE");
+		drawStringCenter(242, "REBOOT DEVICE");
+		drawStringCenter(258, "RESTART VSH");
+		drawStringCenter(274, "EXIT");
 		
 		switch(selection)
 		{
@@ -95,39 +94,43 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				else
 					drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 				break;
-			/*case 2:
-				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(162, "VSH MENU COLOUR");
-				break;*/
 			case 2:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(162, "RECOVERY MENU ->");
+				drawStringfCenter(162, "BATTERY STATUS %s", batteryPercent? "enabled" : "disabled");
 				break;
 			case 3:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(178, "SHUTDOWN DEVICE");
+				drawStringfCenter(178, "VSH MENU COLOUR %s", colourStr[colour]);
 				break;
 			case 4:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(194, "SUSPEND DEVICE");
+				drawStringCenter(194, "RECOVERY MENU ->");
 				break;
 			case 5:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(210, "REBOOT DEVICE");
+				drawStringCenter(210, "SHUTDOWN DEVICE");
 				break;
 			case 6:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(226, "RESTART VSH");
+				drawStringCenter(226, "SUSPEND DEVICE");
 				break;
 			case 7:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(242, "EXIT");
+				drawStringCenter(242, "REBOOT DEVICE");
+				break;
+			case 8:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringCenter(258, "RESTART VSH");
+				break;
+			case 9:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringCenter(274, "EXIT");
 				break;
 		}
     }
 	
     return TAI_CONTINUE(SceInt, ref_hook0, pParam, sync);
-}   
+}
 
 SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, SceInt count) 
 {
@@ -142,7 +145,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 		
 		pressed_buttons = ctrl->buttons & ~old_buttons;
 
-		if(showVSH == 1) // Main VSH Menu
+		if (showVSH == 1) // Main VSH Menu
 		{
 			if (pressed_buttons & SCE_CTRL_DOWN)
 				selection += 1;
@@ -184,17 +187,50 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
 				}
 			}
-			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				launchAppByUriExit("PSVVSHREC");
-			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				scePowerRequestStandby();
+			else if (selection == 2)
+			{
+				if ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))
+				{
+					if (!batteryPercent)
+						batteryPercent = SCE_TRUE;
+					else 
+						batteryPercent = SCE_FALSE;
+					
+					saveConfig(batteryPercent, colour);
+					loadConfig();
+				}
+			}
+			else if (selection == 3)
+			{
+				if (pressed_buttons & SCE_CTRL_LEFT)
+				{
+					colour--;
+					saveConfig(batteryPercent, colour);
+					loadConfig();
+				}
+				else if (pressed_buttons & SCE_CTRL_RIGHT)
+				{
+					colour++;
+					saveConfig(batteryPercent, colour);
+					loadConfig();
+				}
+				
+				if (colour > 6)
+					colour = 0;
+				else if (colour < 0)
+					colour = 6;
+			}
 			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				scePowerRequestSuspend();
+				launchAppByUriExit("PSVVSHREC");
 			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				scePowerRequestStandby();
+			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				scePowerRequestSuspend();
+			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestColdReset();
-			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS))
 				restartVSH();
-			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_CROSS))
 				showVSH = 0;
 			
 			old_buttons = ctrl->buttons;
@@ -203,30 +239,15 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 		else
 		{
 			if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
-			{
-				if (!(dirExists("ux0:/data/vsh")))
-				{
-					char buf[2];
-					
-					SceUID dir = sceIoDopen("ux0:/data/vsh");
-					sceIoMkdir("ux0:/data/vsh", 0777);
-					sceIoDclose(dir);
-					
-					if (!(fileExists("ux0:/data/vsh/colours.bin")))
-					{
-						sprintf(buf, "%d", (int)colour);
-						writeFile("ux0:/data/vsh/colours.bin", buf, 2);
-					}
-				}
-				
-				if(c_clock == -1)
+			{	
+				if (c_clock == -1)
 				{
 					profile_game[0] = scePowerGetArmClockFrequency();
 					profile_game[1] = scePowerGetBusClockFrequency();
 					c_clock = 0;
 				}
 				
-				if(g_clock == -1)
+				if (g_clock == -1)
 				{
 					profile_game[2] = scePowerGetGpuClockFrequency();
 					profile_game[3] = scePowerGetGpuXbarClockFrequency();
@@ -243,12 +264,12 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 
 SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t ref_hook, SceInt port, SceInt freq)
 {
-	if(c_clock == -1)
+	if (c_clock == -1)
 		return TAI_CONTINUE(SceInt, ref_hook, freq);
 	else
 		return TAI_CONTINUE(SceInt, ref_hook, profiles[c_clock][port]);
 	
-	if(g_clock == -1)
+	if (g_clock == -1)
 		return TAI_CONTINUE(SceInt, ref_hook, freq);
 	else
 		return TAI_CONTINUE(SceInt, ref_hook, profiles[g_clock][port]);
@@ -295,10 +316,12 @@ static SceInt power_patched4(SceInt freq)
 }
 
 SceVoid _start() __attribute__ ((weak, alias ("module_start")));
-SceInt module_stop(SceSize argc, const SceVoid * args);
-
 SceInt module_start(SceSize argc, const SceVoid * args) 
-{
+{	
+	if (!(dirExists("ux0:/data/vsh")))
+		makeDir("ux0:/data/vsh");
+	
+	loadConfig();
 
 	g_hooks[0] = taiHookFunctionImport(&ref_hook0, 
 										TAI_MAIN_MODULE,

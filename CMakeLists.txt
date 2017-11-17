@@ -30,15 +30,16 @@ add_executable(vsh
 	draw.c
 	font.c
 	fs.c
+	utils.c
 )
 
 target_link_libraries(vsh
 	taihen_stub
-	SceLibKernel_stub_weak
-	SceIofilemgr_stub_weak
-	SceDisplay_stub_weak
-	ScePower_stub_weak
 	SceAppMgr_stub_weak
+	SceDisplay_stub_weak
+	SceIofilemgr_stub_weak
+	SceLibKernel_stub_weak
+	ScePower_stub_weak
 	k
 	gcc
 )

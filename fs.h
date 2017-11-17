@@ -1,16 +1,13 @@
 #ifndef PSV_VSH_FS_H
 #define PSV_VSH_FS_H
 
-#include <psp2/io/dirent.h>
-#include <psp2/io/fcntl.h>
-#include <psp2/io/devctl.h>
+#include <vitasdk.h>
 
-#include <string.h>
-
-SceInt fileExists(const char * path);
-SceInt dirExists(const char * path);
-SceInt readFile(char * file, SceVoid * buf, SceInt size);
-SceInt writeFile(char * file, SceVoid * buf, SceInt size);
-SceInt removeFile(char * file);
+SceBool fileExists(const char * path);
+SceBool dirExists(const char * path);
+SceInt readFile(char * path, SceVoid * buf, SceInt size);
+SceInt writeFile(char * path, SceVoid * buf, SceInt size);
+SceInt makeDir(char * path);
+SceInt removeFile(char * path);
 
 #endif

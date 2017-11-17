@@ -14,8 +14,13 @@
 #define SALMON 		0xC00000FF
 #define SKYBLUE 	0x00FF8080
 
-#define RGB_RED  		RGB(150, 1, 1) 
-#define RGB_GREEN		RGB(1, 150, 1)
+#define RGB_RED         RGB(150, 1, 1) 
+#define RGB_GREEN       RGB(1, 150, 1)
+#define RGB_BLUE        RGB(1, 1, 150)
+#define RGB_YELLOW      RGB(150, 150, 1)
+#define RGB_PURPLE      RGB(150, 1, 150)
+#define RGB_BLACK       RGB(1, 1, 1)
+#define RGB_WHITE       RGB(150, 150, 150)
 
 #define RGB(R, G, B)    (((B) << 16) | ((G) << 8) | (R))
 #define RGBT(R, G, B, T) (((T) << 24) | ((B) << 16) | ((G) << 8) | (R))
