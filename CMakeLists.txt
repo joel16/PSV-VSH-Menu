@@ -27,6 +27,7 @@ endif()
 
 add_executable(vsh
 	vsh.c
+	config.c
 	draw.c
 	font.c
 	fs.c

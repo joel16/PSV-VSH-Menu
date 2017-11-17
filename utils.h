@@ -9,13 +9,7 @@
 #define R_FAILED(res)      ((res)<0)
 /// Returns the level of a result code.
 
-SceBool batteryPercent;
-int colour;
-
 SceInt launchAppByUriExit(char * titleid);
 SceVoid restartVSH(SceVoid);
-SceInt saveConfig(SceBool batteryPercent, int colour);
-SceInt loadConfig(SceVoid);
-int getColour();
 
 #endif

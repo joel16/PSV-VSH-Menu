@@ -3,22 +3,24 @@
 
 #include <psp2/display.h>
 
-#define CYAN    	0x00FFFF00
-#define MAGENTA 	0x00FF00FF
-#define YELLOW  	0x0000FFFF
-#define RED  		0x000000FF 
-#define WHITE 		0x00FFFFFF
-#define BLACK 		0x00000000
-#define LIMEGREEN 	0x8000FF00
-#define GREEN		0x0000FF00
-#define SALMON 		0xC00000FF
-#define SKYBLUE 	0x00FF8080
+#define CYAN        0x00FFFF00
+#define MAGENTA     0x00FF00FF
+#define YELLOW      0x0000FFFF
+#define RED         0x000000FF 
+#define WHITE       0x00FFFFFF
+#define BLACK       0x00000000
+#define LIMEGREEN   0x8000FF00
+#define GREEN       0x0000FF00
+#define SALMON      0xC00000FF
+#define SKYBLUE     0x00FF8080
 
 #define RGB_RED         RGB(150, 1, 1) 
 #define RGB_GREEN       RGB(1, 150, 1)
 #define RGB_BLUE        RGB(1, 1, 150)
-#define RGB_YELLOW      RGB(150, 150, 1)
+#define RGB_YELLOW      RGB(160, 160, 1)
+#define RGB_ORANGE      RGB(255, 165, 1)
 #define RGB_PURPLE      RGB(150, 1, 150)
+#define RGB_PINK        RGB(255,105,180)
 #define RGB_BLACK       RGB(1, 1, 1)
 #define RGB_WHITE       RGB(150, 150, 150)
 

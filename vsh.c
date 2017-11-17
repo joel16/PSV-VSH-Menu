@@ -3,6 +3,7 @@
 #include <vitasdk.h>
 #include <taihen.h>
 
+#include "config.h"
 #include "draw.h"
 #include "fs.h"
 #include "utils.h"
@@ -33,7 +34,9 @@ static char * colourStr[] =
 	"Green",
 	"Blue",
 	"Yellow",
+	"Orange",
 	"Purple",
+	"Pink",
 	"Black",
 	"White"
 };
@@ -215,10 +218,10 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					loadConfig();
 				}
 				
-				if (colour > 6)
+				if (colour > 8)
 					colour = 0;
 				else if (colour < 0)
-					colour = 6;
+					colour = 8;
 			}
 			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				launchAppByUriExit("PSVVSHREC");
