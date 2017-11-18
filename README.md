@@ -29,3 +29,5 @@ Edit config.txt in that directory to load plugin for title of your choice by add
 *PCSB01019
 ux0:tai/vsh.suprx
 ```
+
+Then use **L + R + START** to open the VSH menu.
