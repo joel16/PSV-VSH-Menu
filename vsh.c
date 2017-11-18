@@ -8,7 +8,8 @@
 #include "fs.h"
 #include "utils.h"
 
-#define MAX_ITEMS 9
+#define MAIN_MAX_ITEMS 10
+#define APP_MAX_ITEMS 2
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
@@ -74,12 +75,13 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		
 		drawStringfCenter(162, "BATTERY STATUS %s", batteryPercent? "enabled" : "disabled");
 		drawStringfCenter(178, "VSH MENU COLOUR %s", colourStr[colour]);
-		drawStringCenter(194, "RECOVERY MENU ->");
-		drawStringCenter(210, "SHUTDOWN DEVICE");
-		drawStringCenter(226, "SUSPEND DEVICE");
-		drawStringCenter(242, "REBOOT DEVICE");
-		drawStringCenter(258, "RESTART VSH");
-		drawStringCenter(274, "EXIT");
+		drawStringCenter(194, "LOAD PROGRAM ->");
+		drawStringCenter(210, "RECOVERY MENU ->");
+		drawStringCenter(226, "SHUTDOWN DEVICE");
+		drawStringCenter(242, "SUSPEND DEVICE");
+		drawStringCenter(258, "REBOOT DEVICE");
+		drawStringCenter(274, "RESTART VSH");
+		drawStringCenter(290, "EXIT");
 		
 		switch(selection)
 		{
@@ -107,30 +109,62 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				break;
 			case 4:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(194, "RECOVERY MENU ->");
+				drawStringCenter(194, "LOAD PROGRAM ->");
 				break;
 			case 5:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(210, "SHUTDOWN DEVICE");
+				drawStringCenter(210, "RECOVERY MENU ->");
 				break;
 			case 6:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(226, "SUSPEND DEVICE");
+				drawStringCenter(226, "SHUTDOWN DEVICE");
 				break;
 			case 7:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(242, "REBOOT DEVICE");
+				drawStringCenter(242, "SUSPEND DEVICE");
 				break;
 			case 8:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(258, "RESTART VSH");
+				drawStringCenter(258, "REBOOT DEVICE");
 				break;
 			case 9:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(274, "EXIT");
+				drawStringCenter(274, "RESTART VSH");
+				break;
+			case 10:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringCenter(290, "EXIT");
 				break;
 		}
     }
+	
+	else if (showVSH == 2)
+	{
+		drawSetColour(WHITE, RGB_GREEN);
+		drawStringCenter(100, "PSV VSH MENU");
+		
+		drawSetColour(WHITE, getColour());
+		
+		drawStringCenter(130, "<- BACK");
+		drawStringfCenter(162, "Settings");
+		drawStringfCenter(178, "VitaShell");
+		
+		switch(selection)
+		{
+			case 0:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringCenter(130, "<- BACK");
+				break;
+			case 1:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(162, "Settings");
+				break;
+			case 2:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(178, "VitaShell");
+				break;
+		}
+	}
 	
     return TAI_CONTINUE(SceInt, ref_hook0, pParam, sync);
 }
@@ -155,10 +189,10 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if (pressed_buttons & SCE_CTRL_UP)
 				selection -= 1;
 			
-			if (selection == MAX_ITEMS + 1)
+			if (selection == MAIN_MAX_ITEMS + 1)
 				selection = 0;
 			if (selection == -1)
-				selection = MAX_ITEMS;
+				selection = MAIN_MAX_ITEMS;
 			
 			if (selection == 0) 
 			{
@@ -223,18 +257,48 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				else if (colour < 0)
 					colour = 8;
 			}
-			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				launchAppByUriExit("PSVVSHREC");
+			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS))
+			{
+				selection = 0;
+				showVSH = 2;
+			}
 			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				scePowerRequestStandby();
+				launchAppByUriExit("PSVVSHREC");
 			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				scePowerRequestSuspend();
+				scePowerRequestStandby();
 			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				scePowerRequestSuspend();
+			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestColdReset();
-			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS))
-				restartVSH();
 			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_CROSS))
+				restartVSH();
+			else if ((selection == 10) && (pressed_buttons & SCE_CTRL_CROSS))
 				showVSH = 0;
+			
+			old_buttons = ctrl->buttons;
+			ctrl->buttons = 0; // Disable controls
+		}
+		else if (showVSH == 2)
+		{
+			if (pressed_buttons & SCE_CTRL_DOWN)
+				selection += 1;
+			else if (pressed_buttons & SCE_CTRL_UP)
+				selection -= 1;
+			
+			if (selection == APP_MAX_ITEMS + 1)
+				selection = 0;
+			if (selection == -1)
+				selection = APP_MAX_ITEMS;
+			
+			if ((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS))
+			{
+				selection = 0;
+				showVSH = 1;
+			}
+			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				sceAppMgrLaunchAppByUri(0xFFFFF, "settings_dlg:");
+			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
+				launchAppByUriExit("VITASHELL");
 			
 			old_buttons = ctrl->buttons;
 			ctrl->buttons = 0; // Disable controls
