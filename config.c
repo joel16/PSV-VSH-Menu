@@ -14,9 +14,9 @@ SceInt saveConfig(SceBool batteryPercent, int colour)
 	SceInt ret = 0;
 	
 	char buf[512];
-	snprintf(buf, 512, configFile, batteryPercent, colour);
+	int len = snprintf(buf, 512, configFile, batteryPercent, colour);
 	
-	if (R_FAILED(ret = writeFile("ux0:/data/vsh/config.cfg", buf, 512)))
+	if (R_FAILED(ret = writeFile("ux0:/data/vsh/config.cfg", buf, len)))
 		return ret;
 	
 	return 0;

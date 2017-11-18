@@ -273,7 +273,10 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_CROSS))
 				restartVSH();
 			else if ((selection == 10) && (pressed_buttons & SCE_CTRL_CROSS))
+			{
+				selection = 0;
 				showVSH = 0;
+			}
 			
 			old_buttons = ctrl->buttons;
 			ctrl->buttons = 0; // Disable controls
