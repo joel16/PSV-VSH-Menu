@@ -13,7 +13,6 @@
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
-static SceUInt64 c_clock = 0, g_clock = 0;
 
 static SceUInt32 old_buttons, pressed_buttons;
 
@@ -216,12 +215,16 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					g_clock--;
 					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					loadConfig();
 				}
 				else if ((pressed_buttons & SCE_CTRL_RIGHT) && (g_clock < 3))
 				{
 					g_clock++;
 					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					loadConfig();
 				}
 			}
 			else if (selection == 2)
@@ -233,7 +236,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					else 
 						batteryPercent = SCE_FALSE;
 					
-					saveConfig(batteryPercent, colour);
+					saveConfig(c_clock, g_clock, batteryPercent, colour);
 					loadConfig();
 				}
 			}
@@ -242,13 +245,13 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				if (pressed_buttons & SCE_CTRL_LEFT)
 				{
 					colour--;
-					saveConfig(batteryPercent, colour);
+					saveConfig(c_clock, g_clock, batteryPercent, colour);
 					loadConfig();
 				}
 				else if (pressed_buttons & SCE_CTRL_RIGHT)
 				{
 					colour++;
-					saveConfig(batteryPercent, colour);
+					saveConfig(c_clock, g_clock, batteryPercent, colour);
 					loadConfig();
 				}
 				
@@ -445,6 +448,11 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 										0xA7739DBE, // scePowerSetGpuXbarClockFrequency
 										power_patched4);
 										
+	scePowerSetArmClockFrequency(profiles[c_clock][0]);
+	scePowerSetBusClockFrequency(profiles[c_clock][1]);
+	scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+	scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+	
 	return SCE_KERNEL_START_SUCCESS;
 }
 

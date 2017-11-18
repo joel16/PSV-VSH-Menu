@@ -6,15 +6,17 @@
 #include "utils.h"
 
 const char * configFile =
+	"CPU_clock = %d\n"
+	"GPU_clock = %d\n"
 	"display_battery = %d\n"
 	"bar_colour = %d\n";
 
-SceInt saveConfig(SceBool batteryPercent, int colour)
+SceInt saveConfig(int cpuClock, int gpuClock, SceBool batteryPercent, int colour)
 {
 	SceInt ret = 0;
 	
 	char buf[512];
-	int len = snprintf(buf, 512, configFile, batteryPercent, colour);
+	int len = snprintf(buf, 512, configFile, cpuClock, gpuClock, batteryPercent, colour);
 	
 	if (R_FAILED(ret = writeFile("ux0:/data/vsh/config.cfg", buf, len)))
 		return ret;
@@ -31,7 +33,9 @@ SceInt loadConfig(SceVoid)
 		// set these to the following by default:
 		batteryPercent = 0;
 		colour = 0;
-		return saveConfig(batteryPercent, colour);
+		c_clock = 2; // Default clock
+		g_clock = 2; // Default clock
+		return saveConfig(c_clock, g_clock, batteryPercent, colour);
 	}
 	
 	char buf[512];
@@ -39,7 +43,7 @@ SceInt loadConfig(SceVoid)
 	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf, 512)))
 		return ret;
 	
-	sscanf(buf, configFile, &batteryPercent, &colour);
+	sscanf(buf, configFile, &c_clock, &g_clock, &batteryPercent, &colour);
 	
 	return 0;
 }
