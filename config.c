@@ -5,20 +5,38 @@
 #include "fs.h"
 #include "utils.h"
 
-const char * configFile =
-	"CPU_clock = %d\n"
-	"GPU_clock = %d\n"
+const char * menuConfig =
 	"display_battery = %d\n"
 	"bar_colour = %d\n";
 
-SceInt saveConfig(int cpuClock, int gpuClock, SceBool batteryPercent, int colour)
+const char * clockConfig =
+	"CPU_clock = %d\n"
+	"GPU_clock = %d\n";
+
+SceInt saveMenuConfig(SceBool batteryPercent, int colour)
 {
 	SceInt ret = 0;
 	
-	char buf[512];
-	int len = snprintf(buf, 512, configFile, cpuClock, gpuClock, batteryPercent, colour);
+	char buf[64];
+	int len = snprintf(buf, 64, menuConfig, batteryPercent, colour);
 	
 	if (R_FAILED(ret = writeFile("ux0:/data/vsh/config.cfg", buf, len)))
+		return ret;
+	
+	return 0;
+}
+
+SceInt saveClockConfig(int cpuClock, int gpuClock)
+{
+	SceInt ret = 0;
+	
+	char game_config_path[35];
+	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	
+	char buf[64];
+	int len = snprintf(buf, 64, clockConfig, cpuClock, gpuClock);
+	
+	if (R_FAILED(ret = writeFile(game_config_path, buf, len)))
 		return ret;
 	
 	return 0;
@@ -28,22 +46,34 @@ SceInt loadConfig(SceVoid)
 {
 	SceInt ret = 0;
 	
+	char game_config_path[35];
+	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	
+	if (!(fileExists(game_config_path)))
+	{
+		c_clock = 2; // Default clock
+		g_clock = 2; // Default clock
+		return saveClockConfig(c_clock, g_clock);
+	}
+	
 	if (!(fileExists("ux0:/data/vsh/config.cfg")))
 	{
 		// set these to the following by default:
 		batteryPercent = 0;
 		colour = 0;
-		c_clock = 2; // Default clock
-		g_clock = 2; // Default clock
-		return saveConfig(c_clock, g_clock, batteryPercent, colour);
+		return saveMenuConfig(batteryPercent, colour);
 	}
 	
-	char buf[512];
+	char buf[64], buf1[64];
 	
-	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf, 512)))
+	if (R_FAILED(ret = readFile(game_config_path, buf, 64)))
 		return ret;
 	
-	sscanf(buf, configFile, &c_clock, &g_clock, &batteryPercent, &colour);
+	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf1, 64)))
+		return ret;
+	
+	sscanf(buf, clockConfig, &c_clock, &g_clock);
+	sscanf(buf1, menuConfig, &batteryPercent, &colour);
 	
 	return 0;
 }

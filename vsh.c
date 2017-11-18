@@ -200,12 +200,16 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					c_clock--;
 					scePowerSetArmClockFrequency(profiles[c_clock][0]);
 					scePowerSetBusClockFrequency(profiles[c_clock][1]);
+					saveClockConfig(c_clock, g_clock);
+					loadConfig();
 				}
 				else if ((pressed_buttons & SCE_CTRL_RIGHT) && (c_clock < 3))
 				{
 					c_clock++;
 					scePowerSetArmClockFrequency(profiles[c_clock][0]);
 					scePowerSetBusClockFrequency(profiles[c_clock][1]);
+					saveClockConfig(c_clock, g_clock);
+					loadConfig();
 				}
 			}
 			else if (selection == 1)
@@ -215,7 +219,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					g_clock--;
 					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					saveClockConfig(c_clock, g_clock);
 					loadConfig();
 				}
 				else if ((pressed_buttons & SCE_CTRL_RIGHT) && (g_clock < 3))
@@ -223,7 +227,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					g_clock++;
 					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
 					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					saveClockConfig(c_clock, g_clock);
 					loadConfig();
 				}
 			}
@@ -236,7 +240,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					else 
 						batteryPercent = SCE_FALSE;
 					
-					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					saveMenuConfig(batteryPercent, colour);
 					loadConfig();
 				}
 			}
@@ -245,13 +249,13 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				if (pressed_buttons & SCE_CTRL_LEFT)
 				{
 					colour--;
-					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					saveMenuConfig(batteryPercent, colour);
 					loadConfig();
 				}
 				else if (pressed_buttons & SCE_CTRL_RIGHT)
 				{
 					colour++;
-					saveConfig(c_clock, g_clock, batteryPercent, colour);
+					saveMenuConfig(batteryPercent, colour);
 					loadConfig();
 				}
 				
@@ -393,6 +397,11 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 {	
 	if (!(dirExists("ux0:/data/vsh")))
 		makeDir("ux0:/data/vsh");
+	
+	if (!(dirExists("ux0:/data/vsh/titles")))
+		makeDir("ux0:/data/vsh/titles");
+	
+	sceAppMgrAppParamGetString(0, 12, titleID , 256);
 	
 	loadConfig();
 

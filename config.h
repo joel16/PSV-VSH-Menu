@@ -6,8 +6,10 @@
 SceBool batteryPercent;
 int colour;
 int c_clock, g_clock;
+char titleID[16];
 
-SceInt saveConfig(int cpuClock, int gpuClock, SceBool batteryPercent, int colour);
+SceInt saveMenuConfig(SceBool batteryPercent, int colour);
+SceInt saveClockConfig(int cpuClock, int gpuClock);
 SceInt loadConfig(SceVoid);
 int getColour();
 
