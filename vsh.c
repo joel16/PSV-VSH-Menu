@@ -9,17 +9,17 @@
 #include "utils.h"
 
 #define MAIN_MAX_ITEMS 10
-#define APP_MAX_ITEMS 2
+#define APP_MAX_ITEMS  2
+#define HOOKS_NUM      9
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
 
 static SceUInt32 old_buttons, pressed_buttons;
 
-static SceUID g_hooks[11];
+static SceUID g_hooks[HOOKS_NUM];
 
-static tai_hook_ref_t ref_hook0, ref_hook1, ref_hook2, ref_hook3, ref_hook4;
-static tai_hook_ref_t power_hook1, power_hook2, power_hook3, power_hook4;
+static tai_hook_ref_t ref_hook[HOOKS_NUM];
 
 static SceInt profile_max_battery[] = {111, 111, 111, 111};
 static SceInt profile_default[] = {266, 166, 166, 111};
@@ -165,7 +165,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		}
 	}
 	
-    return TAI_CONTINUE(SceInt, ref_hook0, pParam, sync);
+    return TAI_CONTINUE(SceInt, ref_hook[0], pParam, sync);
 }
 
 SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, SceInt count) 
@@ -354,42 +354,42 @@ SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t ref_hook, SceInt port, S
 
 static SceInt keys_patched1(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
-    return checkButtons(port, ref_hook1, ctrl, count);
+    return checkButtons(port, ref_hook[1], ctrl, count);
 }   
 
 static SceInt keys_patched2(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
-    return checkButtons(port, ref_hook2, ctrl, count);
+    return checkButtons(port, ref_hook[2], ctrl, count);
 }   
 
 static SceInt keys_patched3(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
-    return checkButtons(port, ref_hook3, ctrl, count);
+    return checkButtons(port, ref_hook[3], ctrl, count);
 }   
 
 static SceInt keys_patched4(SceInt port, SceCtrlData *ctrl, SceInt count) 
 {
-    return checkButtons(port, ref_hook4, ctrl, count);
+    return checkButtons(port, ref_hook[4], ctrl, count);
 }   
 
 static SceInt power_patched1(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(power_hook1, 0, freq);
+    return scePowerSetClockFrequency_patched(ref_hook[5], 0, freq);
 }
 
 static SceInt power_patched2(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(power_hook2, 1, freq);
+    return scePowerSetClockFrequency_patched(ref_hook[6], 1, freq);
 }
 
 static SceInt power_patched3(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(power_hook3, 2, freq);
+    return scePowerSetClockFrequency_patched(ref_hook[7], 2, freq);
 }
 
 static SceInt power_patched4(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(power_hook4, 3, freq);
+    return scePowerSetClockFrequency_patched(ref_hook[8], 3, freq);
 }
 
 SceVoid _start() __attribute__ ((weak, alias ("module_start")));
@@ -402,60 +402,17 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 		makeDir("ux0:/data/vsh/titles");
 	
 	sceAppMgrAppParamGetString(0, 12, titleID , 256);
-	
 	loadConfig();
 
-	g_hooks[0] = taiHookFunctionImport(&ref_hook0, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0x7A410B64, // sceDisplaySetFrameBuf
-										sceDisplaySetFrameBuf_patched);
-	g_hooks[1] = taiHookFunctionImport(&ref_hook1, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0xA9C3CED6, // sceCtrlPeekBufferPositive
-										keys_patched1);
-
-	g_hooks[2] = taiHookFunctionImport(&ref_hook2, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0x15F81E8C, // sceCtrlPeekBufferPositive2
-										keys_patched2);
-
-	g_hooks[3] = taiHookFunctionImport(&ref_hook3, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0x67E7AB83, // sceCtrlReadBufferPositive
-										keys_patched3);
-
-	g_hooks[4] = taiHookFunctionImport(&ref_hook4, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0xC4226A3E, // sceCtrlReadBufferPositive2
-										keys_patched4);
-	g_hooks[5] = taiHookFunctionImport(&power_hook1, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0x74DB5AE5, // scePowerGetArmClockFrequency
-										power_patched1);
-
-	g_hooks[6] = taiHookFunctionImport(&power_hook2, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0xB8D7B3FB, // scePowerSetBusClockFrequency
-										power_patched2);
-
-	g_hooks[7] = taiHookFunctionImport(&power_hook3, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0x717DB06C, // scePowerSetGpuClockFrequency
-										power_patched3);
-
-	g_hooks[8] = taiHookFunctionImport(&power_hook4, 
-										TAI_MAIN_MODULE,
-										TAI_ANY_LIBRARY,
-										0xA7739DBE, // scePowerSetGpuXbarClockFrequency
-										power_patched4);
+	g_hooks[0] = _taiHookFunctionImport(&ref_hook[0], 0x7A410B64, sceDisplaySetFrameBuf_patched); // sceDisplaySetFrameBuf
+	g_hooks[1] = _taiHookFunctionImport(&ref_hook[1], 0xA9C3CED6, keys_patched1);                 // sceCtrlPeekBufferPositive
+	g_hooks[2] = _taiHookFunctionImport(&ref_hook[2], 0x15F81E8C, keys_patched2);                 // sceCtrlPeekBufferPositive2
+	g_hooks[3] = _taiHookFunctionImport(&ref_hook[3], 0x67E7AB83, keys_patched3);                 // sceCtrlReadBufferPositive
+	g_hooks[4] = _taiHookFunctionImport(&ref_hook[4], 0xC4226A3E, keys_patched4);                 // sceCtrlReadBufferPositive2
+	g_hooks[5] = _taiHookFunctionImport(&ref_hook[5], 0x74DB5AE5, power_patched1);              // scePowerGetArmClockFrequency
+	g_hooks[6] = _taiHookFunctionImport(&ref_hook[6], 0xB8D7B3FB, power_patched2);              // scePowerSetBusClockFrequency
+	g_hooks[7] = _taiHookFunctionImport(&ref_hook[7], 0x717DB06C, power_patched3);              // scePowerSetGpuClockFrequency
+	g_hooks[8] = _taiHookFunctionImport(&ref_hook[8], 0xA7739DBE, power_patched4);              // scePowerSetGpuXbarClockFrequency
 										
 	scePowerSetArmClockFrequency(profiles[c_clock][0]);
 	scePowerSetBusClockFrequency(profiles[c_clock][1]);
@@ -468,24 +425,12 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 SceInt module_stop(SceSize argc, const SceVoid *args) 
 {
 	// free hooks that didn't fail
-	if (g_hooks[0] >= 0) 
-		taiHookRelease(g_hooks[0], ref_hook0);
-	if (g_hooks[1] >= 0) 
-		taiHookRelease(g_hooks[1], ref_hook1);
-	if (g_hooks[2] >= 0) 
-		taiHookRelease(g_hooks[2], ref_hook2);
-	if (g_hooks[3] >= 0) 
-		taiHookRelease(g_hooks[3], ref_hook3);
-	if (g_hooks[4] >= 0) 
-		taiHookRelease(g_hooks[4], ref_hook4);
-	if (g_hooks[5] >= 0) 
-		taiHookRelease(g_hooks[5], power_hook1);
-	if (g_hooks[6] >= 0) 
-		taiHookRelease(g_hooks[6], power_hook2);
-	if (g_hooks[7] >= 0) 
-		taiHookRelease(g_hooks[7], power_hook3);
-	if (g_hooks[8] >= 0) 
-		taiHookRelease(g_hooks[8], power_hook4);
+	
+	for (int i = (HOOKS_NUM - 1); i >= 0; i--)
+	{
+		if (R_SUCCEEDED(g_hooks[i])) 
+			taiHookRelease(g_hooks[i], ref_hook[i]);
+	}
 	
 	return SCE_KERNEL_STOP_SUCCESS;
 }
