@@ -331,6 +331,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					g_clock = 0;
 				}
 				
+				loadConfig(); // Apparently I need to call this one more time to get the battery/colour config bits.
 				showVSH = 1;
 			}
 		}
@@ -402,7 +403,6 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 		makeDir("ux0:/data/vsh/titles");
 	
 	sceAppMgrAppParamGetString(0, 12, titleID , 256);
-	loadConfig();
 
 	g_hooks[0] = _taiHookFunctionImport(&ref_hook[0], 0x7A410B64, sceDisplaySetFrameBuf_patched); // sceDisplaySetFrameBuf
 	g_hooks[1] = _taiHookFunctionImport(&ref_hook[1], 0xA9C3CED6, keys_patched1);                 // sceCtrlPeekBufferPositive
@@ -413,7 +413,8 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 	g_hooks[6] = _taiHookFunctionImport(&ref_hook[6], 0xB8D7B3FB, power_patched2);              // scePowerSetBusClockFrequency
 	g_hooks[7] = _taiHookFunctionImport(&ref_hook[7], 0x717DB06C, power_patched3);              // scePowerSetGpuClockFrequency
 	g_hooks[8] = _taiHookFunctionImport(&ref_hook[8], 0xA7739DBE, power_patched4);              // scePowerSetGpuXbarClockFrequency
-										
+	
+	loadConfig();
 	scePowerSetArmClockFrequency(profiles[c_clock][0]);
 	scePowerSetBusClockFrequency(profiles[c_clock][1]);
 	scePowerSetGpuClockFrequency(profiles[g_clock][2]);

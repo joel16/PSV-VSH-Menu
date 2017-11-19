@@ -64,16 +64,16 @@ SceInt loadConfig(SceVoid)
 		return saveMenuConfig(batteryPercent, colour);
 	}
 	
-	char buf[64], buf1[64];
+	char buf1[64], buf2[64];
 	
-	if (R_FAILED(ret = readFile(game_config_path, buf, 64)))
+	if (R_FAILED(ret = readFile(game_config_path, buf1, 64)))
 		return ret;
 	
-	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf1, 64)))
+	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf2, 64)))
 		return ret;
 	
-	sscanf(buf, clockConfig, &c_clock, &g_clock);
-	sscanf(buf1, menuConfig, &batteryPercent, &colour);
+	sscanf(buf1, clockConfig, &c_clock, &g_clock);
+	sscanf(buf2, menuConfig, &batteryPercent, &colour);
 	
 	return 0;
 }
