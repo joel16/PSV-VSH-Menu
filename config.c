@@ -7,20 +7,25 @@
 
 const char * menuConfig =
 	"display_battery = %d\n"
+	"display_battery_lifetime = %d\n"
+	"display_battery_temp = %d\n"
 	"bar_colour = %d\n";
 
 const char * clockConfig =
 	"CPU_clock = %d\n"
 	"GPU_clock = %d\n";
 
-SceInt saveMenuConfig(SceBool batteryPercent, int colour)
+SceInt saveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, int colour)
 {
 	SceInt ret = 0;
 	
-	char buf[64];
-	int len = snprintf(buf, 64, menuConfig, batteryPercent, colour);
+	char menu_config_path[25];
+	isUx0? snprintf(menu_config_path, 25, "ux0:/data/vsh/config.cfg") : snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
 	
-	if (R_FAILED(ret = writeFile("ux0:/data/vsh/config.cfg", buf, len)))
+	char buf[128];
+	int len = snprintf(buf, 128, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, colour);
+	
+	if (R_FAILED(ret = writeFile(menu_config_path, buf, len)))
 		return ret;
 	
 	return 0;
@@ -31,7 +36,7 @@ SceInt saveClockConfig(int cpuClock, int gpuClock)
 	SceInt ret = 0;
 	
 	char game_config_path[35];
-	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	isUx0? snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID) : snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
 	
 	char buf[64];
 	int len = snprintf(buf, 64, clockConfig, cpuClock, gpuClock);
@@ -46,8 +51,10 @@ SceInt loadConfig(SceVoid)
 {
 	SceInt ret = 0;
 	
-	char game_config_path[36];
-	snprintf(game_config_path, 36, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	char game_config_path[35], menu_config_path[25];
+	
+	isUx0? snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID) : snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
+	isUx0? snprintf(menu_config_path, 25, "ux0:/data/vsh/config.cfg") : snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
 	
 	if (!(fileExists(game_config_path)))
 	{
@@ -56,24 +63,26 @@ SceInt loadConfig(SceVoid)
 		saveClockConfig(c_clock, g_clock);
 	}
 	
-	if (!(fileExists("ux0:/data/vsh/config.cfg")))
+	if (!(fileExists(menu_config_path)))
 	{
 		// set these to the following by default:
 		batteryPercent = 0;
+		batteryLifeTime = 0;
+		batteryTemp = 0;
 		colour = 0;
-		saveMenuConfig(batteryPercent, colour);
+		saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
 	}
 	
-	char buf1[64], buf2[64];
+	char buf1[64], buf2[128];
 	
 	if (R_FAILED(ret = readFile(game_config_path, buf1, 64)))
 		return ret;
 	
-	if (R_FAILED(ret = readFile("ux0:/data/vsh/config.cfg", buf2, 64)))
+	if (R_FAILED(ret = readFile(menu_config_path, buf2, 128)))
 		return ret;
 	
 	sscanf(buf1, clockConfig, &c_clock, &g_clock);
-	sscanf(buf2, menuConfig, &batteryPercent, &colour);
+	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &colour);
 	
 	return 0;
 }

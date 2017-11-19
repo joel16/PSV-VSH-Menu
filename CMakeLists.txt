@@ -31,6 +31,7 @@ add_executable(vsh
 	draw.c
 	font.c
 	fs.c
+	power.c
 	utils.c
 )
 

@@ -6,11 +6,13 @@
 #include "config.h"
 #include "draw.h"
 #include "fs.h"
+#include "power.h"
 #include "utils.h"
 
-#define MAIN_MAX_ITEMS 10
-#define APP_MAX_ITEMS  2
-#define HOOKS_NUM      9
+#define MAIN_MAX_ITEMS     10
+#define BATTERY_MAX_ITEMS  3
+#define APP_MAX_ITEMS      2
+#define HOOKS_NUM          9
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
@@ -48,15 +50,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 	if (showVSH == 1)
 	{	
 		if (batteryPercent)
-		{
-			int percent = scePowerGetBatteryLifePercent();
-			drawSetColour(WHITE, getColour());
-		
-			if (percent == 100)
-				drawStringf(880, 0, "%d %%", percent);
-			else
-				drawStringf(896, 0, "%d %%", percent);
-		}
+			displayBatteryPercentage();
+		if (batteryLifeTime)
+			displayBatteryLifetime();
+		if (batteryTemp)
+			displayBatteryTemp();
 		
 		drawSetColour(WHITE, RGB_GREEN);
 		drawStringCenter(100, "PSV VSH MENU");
@@ -72,8 +70,8 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		else
 			drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
-		drawStringfCenter(162, "BATTERY STATUS %s", batteryPercent? "enabled" : "disabled");
-		drawStringfCenter(178, "VSH MENU COLOUR %s", colourStr[colour]);
+		drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[colour]);
+		drawStringfCenter(178, "BATTERY OPTIONS ->");
 		drawStringCenter(194, "LOAD PROGRAM ->");
 		drawStringCenter(210, "RECOVERY MENU ->");
 		drawStringCenter(226, "SHUTDOWN DEVICE");
@@ -100,11 +98,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				break;
 			case 2:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(162, "BATTERY STATUS %s", batteryPercent? "enabled" : "disabled");
+				drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[colour]);
 				break;
 			case 3:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(178, "VSH MENU COLOUR %s", colourStr[colour]);
+				drawStringfCenter(178, "BATTERY OPTIONS ->");
 				break;
 			case 4:
 				drawSetColour(WHITE, SKYBLUE);
@@ -139,8 +137,55 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 	
 	else if (showVSH == 2)
 	{
+		if (batteryPercent)
+			displayBatteryPercentage();
+		if (batteryLifeTime)
+			displayBatteryLifetime();
+		if (batteryTemp)
+			displayBatteryTemp();
+		
 		drawSetColour(WHITE, RGB_GREEN);
-		drawStringCenter(100, "PSV VSH MENU");
+		drawStringCenter(100, "BATTERY OPTIONS");
+		
+		drawSetColour(WHITE, getColour());
+		
+		drawStringCenter(130, "<- BACK");
+		drawStringfCenter(162, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
+		drawStringfCenter(178, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+		drawStringfCenter(194, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+		
+		switch(selection)
+		{
+			case 0:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringCenter(130, "<- BACK");
+				break;
+			case 1:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(162, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
+				break;
+			case 2:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(178, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+				break;
+			case 3:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(194, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+				break;
+		}
+	}
+	
+	else if (showVSH == 3)
+	{
+		if (batteryPercent)
+			displayBatteryPercentage();
+		if (batteryLifeTime)
+			displayBatteryLifetime();
+		if (batteryTemp)
+			displayBatteryTemp();
+		
+		drawSetColour(WHITE, RGB_GREEN);
+		drawStringCenter(100, "LOAD PROGRAM");
 		
 		drawSetColour(WHITE, getColour());
 		
@@ -233,29 +278,16 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			}
 			else if (selection == 2)
 			{
-				if ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))
-				{
-					if (!batteryPercent)
-						batteryPercent = SCE_TRUE;
-					else 
-						batteryPercent = SCE_FALSE;
-					
-					saveMenuConfig(batteryPercent, colour);
-					loadConfig();
-				}
-			}
-			else if (selection == 3)
-			{
 				if (pressed_buttons & SCE_CTRL_LEFT)
 				{
 					colour--;
-					saveMenuConfig(batteryPercent, colour);
+					saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
 					loadConfig();
 				}
 				else if (pressed_buttons & SCE_CTRL_RIGHT)
 				{
 					colour++;
-					saveMenuConfig(batteryPercent, colour);
+					saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
 					loadConfig();
 				}
 				
@@ -264,10 +296,15 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				else if (colour < 0)
 					colour = 8;
 			}
-			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS))
 			{
 				selection = 0;
 				showVSH = 2;
+			}
+			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS))
+			{
+				selection = 0;
+				showVSH = 3;
 			}
 			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				launchAppByUriExit("PSVVSHREC");
@@ -289,6 +326,57 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			ctrl->buttons = 0; // Disable controls
 		}
 		else if (showVSH == 2)
+		{
+			if (pressed_buttons & SCE_CTRL_DOWN)
+				selection += 1;
+			else if (pressed_buttons & SCE_CTRL_UP)
+				selection -= 1;
+			
+			if (selection == BATTERY_MAX_ITEMS + 1)
+				selection = 0;
+			if (selection == -1)
+				selection = BATTERY_MAX_ITEMS;
+			
+			if ((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS))
+			{
+				selection = 0;
+				showVSH = 1;
+			}
+			else if ((selection == 1) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
+			{
+				if (!batteryPercent)
+					batteryPercent = SCE_TRUE;
+				else 
+					batteryPercent = SCE_FALSE;
+				
+				saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+				loadConfig();
+			}
+			else if ((selection == 2) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
+			{
+				if (!batteryLifeTime)
+					batteryLifeTime = SCE_TRUE;
+				else 
+					batteryLifeTime = SCE_FALSE;
+					
+				saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+				loadConfig();
+			}
+			else if ((selection == 3) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
+			{
+				if (!batteryTemp)
+					batteryTemp = SCE_TRUE;
+				else 
+					batteryTemp = SCE_FALSE;
+					
+				saveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+				loadConfig();
+			}
+			
+			old_buttons = ctrl->buttons;
+			ctrl->buttons = 0; // Disable controls
+		}
+		else if (showVSH == 3)
 		{
 			if (pressed_buttons & SCE_CTRL_DOWN)
 				selection += 1;
@@ -395,11 +483,16 @@ static SceInt power_patched4(SceInt freq)
 SceVoid _start() __attribute__ ((weak, alias ("module_start")));
 SceInt module_start(SceSize argc, const SceVoid * args) 
 {	
-	if (!(dirExists("ux0:/data/vsh")))
-		makeDir("ux0:/data/vsh");
+	// Check if plugin is running from ur0 or ux0
+	isUx0 = SCE_TRUE;
+	if (fileExists("ur0:tai/vsh.suprx"))
+		isUx0 = SCE_FALSE;
 	
-	if (!(dirExists("ux0:/data/vsh/titles")))
-		makeDir("ux0:/data/vsh/titles");
+	if ((!(dirExists("ur0:/data/vsh"))) || (!(dirExists("ux0:/data/vsh"))))
+		isUx0? makeDir("ux0:/data/vsh") : makeDir("ur0:/data/vsh");
+	
+	if ((!(dirExists("ur0:/data/vsh/titles"))) || (!(dirExists("ux0:/data/vsh/titles"))))
+		isUx0? makeDir("ux0:/data/vsh/titles") : makeDir("ur0:/data/vsh/titles");
 	
 	sceAppMgrAppParamGetString(0, 12, titleID , 256);
 
