@@ -331,7 +331,6 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 					g_clock = 0;
 				}
 				
-				loadConfig(); // Apparently I need to call this one more time to get the battery/colour config bits.
 				showVSH = 1;
 			}
 		}

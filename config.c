@@ -46,14 +46,14 @@ SceInt loadConfig(SceVoid)
 {
 	SceInt ret = 0;
 	
-	char game_config_path[35];
-	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	char game_config_path[36];
+	snprintf(game_config_path, 36, "ux0:/data/vsh/titles/%s.cfg", titleID);
 	
 	if (!(fileExists(game_config_path)))
 	{
 		c_clock = 2; // Default clock
 		g_clock = 2; // Default clock
-		return saveClockConfig(c_clock, g_clock);
+		saveClockConfig(c_clock, g_clock);
 	}
 	
 	if (!(fileExists("ux0:/data/vsh/config.cfg")))
@@ -61,7 +61,7 @@ SceInt loadConfig(SceVoid)
 		// set these to the following by default:
 		batteryPercent = 0;
 		colour = 0;
-		return saveMenuConfig(batteryPercent, colour);
+		saveMenuConfig(batteryPercent, colour);
 	}
 	
 	char buf1[64], buf2[64];
