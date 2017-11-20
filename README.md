@@ -1,4 +1,4 @@
-# PSV-VSH-Menu
+# PSV-VSH-Menu ![Github latest downloads](https://img.shields.io/github/downloads/joel16/PSV-VSH-Menu/total.svg)
 A VSH menu taiHEN plugin for the PS VITA.
 
 Features
