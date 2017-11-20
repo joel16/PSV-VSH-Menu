@@ -42,6 +42,7 @@ target_link_libraries(vsh
 	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
 	ScePower_stub_weak
+	SceSysmem_stub_weak
 	k
 	gcc
 )
