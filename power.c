@@ -3,31 +3,45 @@
 #include "power.h"
 #include "utils.h"
 
-SceVoid displayBatteryPercentage(SceVoid)
+SceInt displayBatteryPercentage(SceVoid)
 {
-	int percent = scePowerGetBatteryLifePercent();
-	drawSetColour(WHITE, getColour());
+	SceInt ret = 0;
+	
+	if (R_FAILED(ret = scePowerGetBatteryLifePercent()))
+		return ret;
 		
-	if (percent == 100)
-		drawStringf(880, 0, "%d %%", percent);
+	drawSetColour(WHITE, getColour());
+	
+	if (ret == 100)
+		drawStringf(880, 0, "%d %%", ret);
 	else
-		drawStringf(896, 0, "%d %%", percent);
+		drawStringf(896, 0, "%d %%", ret);
+	
+	return 0;
 }
 
-SceVoid displayBatteryLifetime(SceVoid)
+SceInt displayBatteryLifetime(SceVoid)
 {
-	int lifetime = scePowerGetBatteryLifeTime();
+	SceInt ret = 0;
+	
+	if (R_FAILED(ret = scePowerGetBatteryLifeTime()))
+		return ret;
+	
 	drawSetColour(WHITE, getColour());
-		
-	if (R_SUCCEEDED(lifetime))
-		drawStringfCenter(0, "%02ih %02im", lifetime / 60, lifetime - (lifetime / 60 * 60));
+	drawStringfCenter(0, "%02ih %02im", ret / 60, ret - (ret / 60 * 60));
+	
+	return 0;
 }
 
-SceVoid displayBatteryTemp(SceVoid)
+SceInt displayBatteryTemp(SceVoid)
 {
-	int temp = scePowerGetBatteryTemp();
+	SceInt ret = 0;
+	
+	if (R_FAILED(ret = scePowerGetBatteryTemp()))
+		return ret;
+	
 	drawSetColour(WHITE, getColour());
-		
-	if (temp > 0)
-		drawStringf(0, 0, "Temp: %02i C", temp / 100);
+	drawStringf(0, 0, "Temp: %02i C", ret / 100);
+	
+	return 0;
 }

@@ -3,8 +3,8 @@
 
 #include <vitasdk.h>
 
-SceVoid displayBatteryPercentage(SceVoid);
-SceVoid displayBatteryLifetime(SceVoid);
-SceVoid displayBatteryTemp(SceVoid);
+SceInt displayBatteryPercentage(SceVoid);
+SceInt displayBatteryLifetime(SceVoid);
+SceInt displayBatteryTemp(SceVoid);
 
 #endif
