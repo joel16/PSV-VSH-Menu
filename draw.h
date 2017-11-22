@@ -32,41 +32,41 @@
 /*
 *	Sets up draw functions.
 */
-int drawInit(void);
+SceInt drawInit(SceVoid);
 
 /*
 *	This function sets the string colour, as well as the background colour.
 */
-void drawSetColour(int fg_col, int bg_col);
+SceVoid drawSetColour(SceInt fg_col, SceInt bg_col);
 
 /*
 *	This function draws a string onto the screen.
 */
-int drawString(int sx, int sy, const char *msg);
+SceInt drawString(SceInt sx, SceInt sy, const char *msg);
 
 /*
 *	This function draws a string onto the center of the screen.
 */
-int drawStringCenter(int sy, const char *msg);
+SceInt drawStringCenter(SceInt sy, const char *msg);
 
 /*
 *	This function draws a string onto the center of the screen with string specifier formats.
 */
-int drawStringfCenter(int sy, const char *msg, ...);
+SceInt drawStringfCenter(SceInt sy, const char *msg, ...);
 
 /*
 *	This function draws a string onto the screen with string specifier formats.
 */
-int drawStringf(int sx, int sy, const char *msg, ...);
+SceInt drawStringf(SceInt sx, SceInt sy, const char *msg, ...);
 
 /*
 *	This function sets the frame buffer.
 */
-int drawSetFrameBuf(const SceDisplayFrameBuf *param);
+SceInt drawSetFrameBuf(const SceDisplayFrameBuf *param);
 
 /*
 *	Draws a rectangle with a specified width, height and colour onto a screen.
 */
-void drawRect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t col);
+SceVoid drawRect(SceUInt32 x, SceUInt32 y, SceUInt32 w, SceUInt32 h, SceUInt32 col);
 
 #endif

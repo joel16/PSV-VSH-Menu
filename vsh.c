@@ -71,7 +71,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 			drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
 		drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[colour]);
-		drawStringfCenter(178, "BATTERY OPTIONS ->");
+		drawStringCenter(178, "BATTERY OPTIONS ->");
 		drawStringCenter(194, "LOAD PROGRAM ->");
 		drawStringCenter(210, "RECOVERY MENU ->");
 		drawStringCenter(226, "SHUTDOWN DEVICE");
@@ -85,14 +85,14 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 			case 0:
 				drawSetColour(WHITE, SKYBLUE);
 				if (c_clock == 2)
-					drawStringfCenter(130, "CPU CLOCK default");
+					drawStringCenter(130, "CPU CLOCK default");
 				else
 					drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 				break;
 			case 1:
 				drawSetColour(WHITE, SKYBLUE);
 				if (g_clock == 2)
-					drawStringfCenter(146, "GPU CLOCK default");
+					drawStringCenter(146, "GPU CLOCK default");
 				else
 					drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 				break;
@@ -102,7 +102,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				break;
 			case 3:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(178, "BATTERY OPTIONS ->");
+				drawStringCenter(178, "BATTERY OPTIONS ->");
 				break;
 			case 4:
 				drawSetColour(WHITE, SKYBLUE);
@@ -190,8 +190,8 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		drawSetColour(WHITE, getColour());
 		
 		drawStringCenter(130, "<- BACK");
-		drawStringfCenter(162, "Settings");
-		drawStringfCenter(178, "VitaShell");
+		drawStringCenter(162, "Settings");
+		drawStringCenter(178, "VitaShell");
 		
 		switch(selection)
 		{
@@ -201,11 +201,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				break;
 			case 1:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(162, "Settings");
+				drawStringCenter(162, "Settings");
 				break;
 			case 2:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(178, "VitaShell");
+				drawStringCenter(178, "VitaShell");
 				break;
 		}
 	}
@@ -296,27 +296,27 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				else if (colour < 0)
 					colour = 8;
 			}
-			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_ENTER))
 			{
 				selection = 0;
 				showVSH = 2;
 			}
-			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_ENTER))
 			{
 				selection = 0;
 				showVSH = 3;
 			}
-			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				launchAppByUriExit("PSVVSHREC");
-			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				scePowerRequestStandby();
-			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				scePowerRequestSuspend();
-			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				scePowerRequestColdReset();
-			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_ENTER))
 				restartVSH();
-			else if ((selection == 10) && (pressed_buttons & SCE_CTRL_CROSS))
+			else if (((selection == 10) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
 			{
 				selection = 0;
 				showVSH = 0;
@@ -337,7 +337,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			if (selection == -1)
 				selection = BATTERY_MAX_ITEMS;
 			
-			if ((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS))
+			if (((selection == 0) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
 			{
 				selection = 0;
 				showVSH = 1;
@@ -388,14 +388,14 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			if (selection == -1)
 				selection = APP_MAX_ITEMS;
 			
-			if ((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS))
+			if (((selection == 0) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
 			{
 				selection = 0;
 				showVSH = 1;
 			}
-			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				sceAppMgrLaunchAppByUri(0xFFFFF, "settings_dlg:");
-			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_ENTER)) 
 				launchAppByUriExit("VITASHELL");
 			
 			old_buttons = ctrl->buttons;
@@ -494,17 +494,21 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 	if ((!(dirExists("ur0:/data/vsh/titles"))) || (!(dirExists("ux0:/data/vsh/titles"))))
 		isUx0? makeDir("ux0:/data/vsh/titles") : makeDir("ur0:/data/vsh/titles");
 	
-	sceAppMgrAppParamGetString(0, 12, titleID , 256);
-
+	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
+	
+	initAppUtil();
+	getCtrlButtons(); // Get enter and cancel button.
+	termAppUtil();
+	
 	g_hooks[0] = _taiHookFunctionImport(&ref_hook[0], 0x7A410B64, sceDisplaySetFrameBuf_patched); // sceDisplaySetFrameBuf
 	g_hooks[1] = _taiHookFunctionImport(&ref_hook[1], 0xA9C3CED6, keys_patched1);                 // sceCtrlPeekBufferPositive
 	g_hooks[2] = _taiHookFunctionImport(&ref_hook[2], 0x15F81E8C, keys_patched2);                 // sceCtrlPeekBufferPositive2
 	g_hooks[3] = _taiHookFunctionImport(&ref_hook[3], 0x67E7AB83, keys_patched3);                 // sceCtrlReadBufferPositive
 	g_hooks[4] = _taiHookFunctionImport(&ref_hook[4], 0xC4226A3E, keys_patched4);                 // sceCtrlReadBufferPositive2
-	g_hooks[5] = _taiHookFunctionImport(&ref_hook[5], 0x74DB5AE5, power_patched1);              // scePowerGetArmClockFrequency
-	g_hooks[6] = _taiHookFunctionImport(&ref_hook[6], 0xB8D7B3FB, power_patched2);              // scePowerSetBusClockFrequency
-	g_hooks[7] = _taiHookFunctionImport(&ref_hook[7], 0x717DB06C, power_patched3);              // scePowerSetGpuClockFrequency
-	g_hooks[8] = _taiHookFunctionImport(&ref_hook[8], 0xA7739DBE, power_patched4);              // scePowerSetGpuXbarClockFrequency
+	g_hooks[5] = _taiHookFunctionImport(&ref_hook[5], 0x74DB5AE5, power_patched1);                // scePowerGetArmClockFrequency
+	g_hooks[6] = _taiHookFunctionImport(&ref_hook[6], 0xB8D7B3FB, power_patched2);                // scePowerSetBusClockFrequency
+	g_hooks[7] = _taiHookFunctionImport(&ref_hook[7], 0x717DB06C, power_patched3);                // scePowerSetGpuClockFrequency
+	g_hooks[8] = _taiHookFunctionImport(&ref_hook[8], 0xA7739DBE, power_patched4);                // scePowerSetGpuXbarClockFrequency
 	
 	loadConfig();
 	scePowerSetArmClockFrequency(profiles[c_clock][0]);

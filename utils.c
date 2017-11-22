@@ -74,3 +74,43 @@ SceVoid _free(SceVoid * mem)
 	
 	sceKernelFreeMemBlock(block);
 }
+
+SceInt initAppUtil(SceVoid)
+{
+	SceAppUtilInitParam init;
+	SceAppUtilBootParam boot;
+	memset(&init, 0, sizeof(SceAppUtilInitParam));
+	memset(&boot, 0, sizeof(SceAppUtilBootParam));
+	
+	SceInt ret = 0;
+	
+	if (R_FAILED(ret = sceAppUtilInit(&init, &boot)))
+		return ret;
+	
+	return 0;
+}
+
+SceInt termAppUtil(SceVoid)
+{
+	SceInt ret = 0;
+	
+	if (R_FAILED(ret = sceAppUtilShutdown()))
+		return ret;
+	
+	return 0;
+}
+
+SceVoid getCtrlButtons(SceVoid)
+{
+	int enter_button = 0;
+	sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, &enter_button);
+	
+	SCE_CTRL_ENTER = SCE_CTRL_CROSS;
+	SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
+	
+	if (enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE) 
+	{
+		SCE_CTRL_ENTER = SCE_CTRL_CIRCLE;
+		SCE_CTRL_CANCEL = SCE_CTRL_CROSS;
+	}
+}
