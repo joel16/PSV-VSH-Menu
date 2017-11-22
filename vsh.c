@@ -296,27 +296,27 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				else if (colour < 0)
 					colour = 8;
 			}
-			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_ENTER))
+			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS))
 			{
 				selection = 0;
 				showVSH = 2;
 			}
-			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_ENTER))
+			else if ((selection == 4) && (pressed_buttons & SCE_CTRL_CROSS))
 			{
 				selection = 0;
 				showVSH = 3;
 			}
-			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 5) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				launchAppByUriExit("PSVVSHREC");
-			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 6) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestStandby();
-			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 7) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestSuspend();
-			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 8) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				scePowerRequestColdReset();
-			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_ENTER))
+			else if ((selection == 9) && (pressed_buttons & SCE_CTRL_CROSS))
 				restartVSH();
-			else if (((selection == 10) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
+			else if (((selection == 10) && (pressed_buttons & SCE_CTRL_CROSS)) || (pressed_buttons & SCE_CTRL_CIRCLE))
 			{
 				selection = 0;
 				showVSH = 0;
@@ -337,7 +337,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			if (selection == -1)
 				selection = BATTERY_MAX_ITEMS;
 			
-			if (((selection == 0) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
+			if (((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS)) || (pressed_buttons & SCE_CTRL_CIRCLE))
 			{
 				selection = 0;
 				showVSH = 1;
@@ -388,14 +388,14 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			if (selection == -1)
 				selection = APP_MAX_ITEMS;
 			
-			if (((selection == 0) && (pressed_buttons & SCE_CTRL_ENTER)) || (pressed_buttons & SCE_CTRL_CANCEL))
+			if (((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS)) || (pressed_buttons & SCE_CTRL_CIRCLE))
 			{
 				selection = 0;
 				showVSH = 1;
 			}
-			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				sceAppMgrLaunchAppByUri(0xFFFFF, "settings_dlg:");
-			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_ENTER)) 
+			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
 				launchAppByUriExit("VITASHELL");
 			
 			old_buttons = ctrl->buttons;
@@ -495,10 +495,6 @@ SceInt module_start(SceSize argc, const SceVoid * args)
 		isUx0? makeDir("ux0:/data/vsh/titles") : makeDir("ur0:/data/vsh/titles");
 	
 	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
-	
-	initAppUtil();
-	getCtrlButtons(); // Get enter and cancel button.
-	termAppUtil();
 	
 	g_hooks[0] = _taiHookFunctionImport(&ref_hook[0], 0x7A410B64, sceDisplaySetFrameBuf_patched); // sceDisplaySetFrameBuf
 	g_hooks[1] = _taiHookFunctionImport(&ref_hook[1], 0xA9C3CED6, keys_patched1);                 // sceCtrlPeekBufferPositive

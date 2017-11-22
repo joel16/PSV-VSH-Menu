@@ -17,8 +17,5 @@ SceInt launchAppByUriExit(char * titleid);
 SceVoid restartVSH(SceVoid);
 SceVoid * _malloc(SceSize size);
 SceVoid _free(SceVoid * mem);
-SceInt initAppUtil(SceVoid);
-SceInt termAppUtil(SceVoid);
-SceVoid getCtrlButtons(SceVoid);
 
 #endif

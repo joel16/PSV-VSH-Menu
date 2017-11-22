@@ -38,7 +38,6 @@ add_executable(vsh
 target_link_libraries(vsh
 	taihen_stub
 	SceAppMgr_stub_weak
-	SceAppUtil_stub_weak
 	SceDisplay_stub_weak
 	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
