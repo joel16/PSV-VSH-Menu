@@ -11,11 +11,11 @@
 
 #define MAIN_MAX_ITEMS     10
 #define BATTERY_MAX_ITEMS  3
-#define APP_MAX_ITEMS      2
 #define HOOKS_NUM          9
 
 static SceInt showVSH = 0;
 static SceInt selection = 0;
+static SceInt app_list = 0;
 
 static SceUInt32 old_buttons, pressed_buttons;
 
@@ -62,11 +62,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		drawSetColour(WHITE, getColour());
 		
 		if (c_clock == 2)
-			drawStringfCenter(130, "CPU CLOCK default");
+			drawStringCenter(130, "CPU CLOCK default");
 		else 
 			drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 		if (g_clock == 2)
-			drawStringfCenter(146, "GPU CLOCK default");
+			drawStringCenter(146, "GPU CLOCK default");
 		else
 			drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
@@ -190,8 +190,15 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 		drawSetColour(WHITE, getColour());
 		
 		drawStringCenter(130, "<- BACK");
-		drawStringCenter(162, "Settings");
-		drawStringCenter(178, "VitaShell");
+		
+		for (SceInt i = 0; i < 10; i++)
+		{
+			if (strlen(app_title[i]) != 0)
+			{
+				app_list = (i + 1); // increment app list
+				drawStringCenter(162 + (16 * i), app_title[i]);
+			}
+		}
 		
 		switch(selection)
 		{
@@ -200,12 +207,18 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf * pParam, SceInt s
 				drawStringCenter(130, "<- BACK");
 				break;
 			case 1:
-				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(162, "Settings");
+				if (strlen(app_title[0]) != 0)
+				{
+					drawSetColour(WHITE, SKYBLUE);
+					drawStringCenter(162, app_title[0]);
+				}
 				break;
 			case 2:
-				drawSetColour(WHITE, SKYBLUE);
-				drawStringCenter(178, "VitaShell");
+				if (strlen(app_title[1]) != 0)
+				{
+					drawSetColour(WHITE, SKYBLUE);
+					drawStringCenter(178, app_title[1]);
+				}
 				break;
 		}
 	}
@@ -233,7 +246,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if (pressed_buttons & SCE_CTRL_UP)
 				selection -= 1;
 			
-			if (selection == MAIN_MAX_ITEMS + 1)
+			if (selection == (MAIN_MAX_ITEMS + 1))
 				selection = 0;
 			if (selection == -1)
 				selection = MAIN_MAX_ITEMS;
@@ -332,7 +345,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if (pressed_buttons & SCE_CTRL_UP)
 				selection -= 1;
 			
-			if (selection == BATTERY_MAX_ITEMS + 1)
+			if (selection == (BATTERY_MAX_ITEMS + 1))
 				selection = 0;
 			if (selection == -1)
 				selection = BATTERY_MAX_ITEMS;
@@ -383,10 +396,10 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 			else if (pressed_buttons & SCE_CTRL_UP)
 				selection -= 1;
 			
-			if (selection == APP_MAX_ITEMS + 1)
+			if (selection == (app_list + 1))
 				selection = 0;
 			if (selection == -1)
-				selection = APP_MAX_ITEMS;
+				selection = app_list;
 			
 			if (((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS)) || (pressed_buttons & SCE_CTRL_CIRCLE))
 			{
@@ -394,9 +407,20 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData * ctrl, Sc
 				showVSH = 1;
 			}
 			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				sceAppMgrLaunchAppByUri(0xFFFFF, "settings_dlg:");
+			{
+				if (strlen(app_title[0]) != 0)
+					launchAppByUriExit(app_titleID[0]);
+			}
 			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
-				launchAppByUriExit("VITASHELL");
+			{
+				if (strlen(app_title[1]) != 0)
+					launchAppByUriExit(app_titleID[1]);
+			}
+			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			{
+				if (strlen(app_title[2]) != 0)
+					launchAppByUriExit(app_titleID[2]);
+			}
 			
 			old_buttons = ctrl->buttons;
 			ctrl->buttons = 0; // Disable controls

@@ -15,21 +15,34 @@ SceUID  _taiHookFunctionImport(tai_hook_ref_t * p_hook, uint32_t import_func_nid
 
 SceInt launchAppByUriExit(char * titleid) 
 {
+	SceInt ret = 0;
 	char uri[32];
-	sprintf(uri, "psgm:play?titleid=%s", titleid);
-
-	//sceKernelDelayThread(10000);
-	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-	//sceKernelDelayThread(10000);
-	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-
+	
+	if (strlen(titleid) == 9) // Game or App titleID
+	{
+		sprintf(uri, "psgm:play?titleid=%s", titleid);
+		
+		if (R_FAILED(ret = sceAppMgrLaunchAppByUri(0xFFFFF, uri)))
+			return ret;
+		
+		return 0;
+	}
+	
+	if (R_FAILED(ret = sceAppMgrLaunchAppByUri(0xFFFFF, titleid)))
+		return ret;
+	
 	return 0;
 }
 
-SceVoid restartVSH(SceVoid) 
+SceInt restartVSH(SceVoid) 
 {	
+	SceInt ret = 0;
 	char * const argv[] = {"restart", NULL};
-	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
+	
+	if (R_FAILED(ret = sceAppMgrLoadExec("app0:eboot.bin", argv, NULL)))
+		return ret;
+	
+	return 0;
 }
 
 SceVoid * _malloc(SceSize size)
