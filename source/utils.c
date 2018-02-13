@@ -8,12 +8,12 @@
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
-SceUID  _taiHookFunctionImport(tai_hook_ref_t * p_hook, uint32_t import_func_nid, const void * hook_func)
+SceUID  Utils_TaiHookFunctionImport(tai_hook_ref_t *p_hook, uint32_t import_func_nid, const void *hook_func)
 {
 	return taiHookFunctionImport(p_hook, TAI_MAIN_MODULE, TAI_ANY_LIBRARY, import_func_nid, hook_func);
 }
 
-SceInt launchAppByUriExit(char * titleid) 
+SceInt Utils_LaunchAppByUriExit(char *titleid) 
 {
 	SceInt ret = 0;
 	char uri[32];
@@ -34,10 +34,10 @@ SceInt launchAppByUriExit(char * titleid)
 	return 0;
 }
 
-SceInt restartVSH(SceVoid) 
+SceInt Utils_RestartVSH(SceVoid) 
 {	
 	SceInt ret = 0;
-	char * const argv[] = {"restart", NULL};
+	char *const argv[] = {"restart", NULL};
 	
 	if (R_FAILED(ret = sceAppMgrLoadExec("app0:eboot.bin", argv, NULL)))
 		return ret;
@@ -45,7 +45,7 @@ SceInt restartVSH(SceVoid)
 	return 0;
 }
 
-SceVoid * _malloc(SceSize size)
+SceVoid *Utils_SceMalloc(SceSize size)
 {
 	if (!size)
 		return NULL;
@@ -56,7 +56,7 @@ SceVoid * _malloc(SceSize size)
 	if (block <= 0)
 		return NULL;
 
-	SceVoid * base = NULL;
+	SceVoid *base = NULL;
 	sceKernelGetMemBlockBase(block, &base);
 	
 	if (!base)
@@ -68,17 +68,17 @@ SceVoid * _malloc(SceSize size)
 	*(SceSize *)base = block;
 	*(SceSize *)((SceByte *)base + sizeof(SceUID)) = size;
 
-	SceVoid * user_base = (SceVoid *)((SceByte *)base + sizeof(SceUID) + sizeof(SceSize));
+	SceVoid *user_base = (SceVoid *)((SceByte *)base + sizeof(SceUID) + sizeof(SceSize));
 
 	return user_base;
 }
 
-SceVoid _free(SceVoid * mem)
+SceVoid Utils_SceFree(SceVoid *mem)
 {
 	if (!mem)
 		return;
 
-	SceByte * inner_mem = (SceByte *)mem - sizeof(SceUID) - sizeof(SceSize);
+	SceByte *inner_mem = (SceByte *)mem - sizeof(SceUID) - sizeof(SceSize);
 	SceUID block = 0;
 	block = *(SceSize *)inner_mem;
 	

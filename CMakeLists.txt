@@ -15,6 +15,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
+	include
 )
 
 link_directories(
@@ -26,13 +27,13 @@ if (NOT ${RELEASE})
 endif()
 
 add_executable(vsh
-	vsh.c
-	config.c
-	draw.c
-	font.c
-	fs.c
-	power.c
-	utils.c
+	source/vsh.c
+	source/config.c
+	source/draw.c
+	source/font.c
+	source/fs.c
+	source/power.c
+	source/utils.c
 )
 
 target_link_libraries(vsh
@@ -52,5 +53,5 @@ set_target_properties(vsh
 )
 
 vita_create_self(vsh.suprx vsh
-	CONFIG ${CMAKE_SOURCE_DIR}/vsh.yml
+	CONFIG ${CMAKE_SOURCE_DIR}/exports/vsh.yml
 )
