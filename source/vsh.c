@@ -183,7 +183,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 			if (strlen(app_title[i]) != 0)
 			{
 				app_list = (i + 1); // increment app list
-				drawStringCenter(162 + (16 *i), app_title[i]);
+				drawStringCenter(162 + (16 * i), app_title[i]);
 			}
 		}
 		
@@ -205,6 +205,27 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 				{
 					drawSetColour(WHITE, SKYBLUE);
 					drawStringCenter(178, app_title[1]);
+				}
+				break;
+			case 3:
+				if (strlen(app_title[2]) != 0)
+				{
+					drawSetColour(WHITE, SKYBLUE);
+					drawStringCenter(194, app_title[2]);
+				}
+				break;
+			case 4:
+				if (strlen(app_title[3]) != 0)
+				{
+					drawSetColour(WHITE, SKYBLUE);
+					drawStringCenter(210, app_title[3]);
+				}
+				break;
+			case 5:
+				if (strlen(app_title[4]) != 0)
+				{
+					drawSetColour(WHITE, SKYBLUE);
+					drawStringCenter(226, app_title[4]);
 				}
 				break;
 		}
@@ -386,25 +407,22 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 			if (selection == -1)
 				selection = app_list;
 			
-			if (((selection == 0) && (pressed_buttons & SCE_CTRL_CROSS)) || (pressed_buttons & SCE_CTRL_CIRCLE))
+			if (selection == 0)
 			{
-				selection = 0;
-				showVSH = VSH_MAIN_MENU;
+				if ((pressed_buttons & SCE_CTRL_CROSS) || (pressed_buttons & SCE_CTRL_CIRCLE))
+				{
+					selection = 0;
+					showVSH = VSH_MAIN_MENU;
+				}
 			}
-			else if ((selection == 1) && (pressed_buttons & SCE_CTRL_CROSS)) 
+			else
 			{
-				if (strlen(app_title[0]) != 0)
-					Utils_LaunchAppByUriExit(app_titleID[0]);
-			}
-			else if ((selection == 2) && (pressed_buttons & SCE_CTRL_CROSS)) 
-			{
-				if (strlen(app_title[1]) != 0)
-					Utils_LaunchAppByUriExit(app_titleID[1]);
-			}
-			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS)) 
-			{
-				if (strlen(app_title[2]) != 0)
-					Utils_LaunchAppByUriExit(app_titleID[2]);
+				if (pressed_buttons & SCE_CTRL_CROSS)
+				{
+					if (strlen(app_title[selection - 1]) != 0)
+						Utils_LaunchAppByUriExit(app_titleID[selection - 1]);
+				}
+				
 			}
 			
 			old_buttons = ctrl->buttons;

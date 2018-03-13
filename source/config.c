@@ -17,7 +17,10 @@ const char *clockConfig =
 	
 const char *launcherConfig =
 	"[0] title: %s titleID: %s\n"
-	"[1] title: %s titleID: %s\n";
+	"[1] title: %s titleID: %s\n"
+	"[2] title: %s titleID: %s\n"
+	"[3] title: %s titleID: %s\n"
+	"[4] title: %s titleID: %s\n";
 
 SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, int colour)
 {
@@ -70,15 +73,22 @@ static SceInt Config_SaveLauncherConfig()
 	char *launcher_config_path = (char *)Utils_SceMalloc(27);
 	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
 	
-	char *buf = (char *)Utils_SceMalloc(128);
+	char *buf = (char *)Utils_SceMalloc(256);
 	
 	// set these to the following by default:
 	snprintf(app_title[0], 9, "Settings");
-	snprintf(app_titleID[0], 30, "settings_dlg:");
+	snprintf(app_titleID[0], 14, "settings_dlg:");
 	snprintf(app_title[1], 10, "VitaShell");
 	snprintf(app_titleID[1], 10, "VITASHELL");
+	snprintf(app_title[2], 11, "Adrenaline");
+	snprintf(app_titleID[2], 10, "PSPEMUCFW");
+	snprintf(app_title[3], 5, "VHBB");
+	snprintf(app_titleID[3], 10, "VHBB00001");
+	snprintf(app_title[4], 10, "VITAident");
+	snprintf(app_titleID[4], 10, "VID000162");
 	
-	SceInt len = snprintf(buf, 128, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1]);
+	SceInt len = snprintf(buf, 256, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
+		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	
 	if (R_FAILED(ret = FS_WriteFile(launcher_config_path, buf, len)))
 	{
@@ -163,7 +173,8 @@ SceInt Config_LoadConfig(SceVoid)
 	
 	sscanf(buf1, clockConfig, &c_clock, &g_clock);
 	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &colour);
-	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1]);
+	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
+		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	
 	Utils_SceFree(buf3);
 	Utils_SceFree(buf2);

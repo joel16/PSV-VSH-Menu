@@ -6,7 +6,7 @@
 SceBool batteryPercent, batteryLifeTime, batteryTemp;
 int c_clock, g_clock, colour;
 char titleID[16];
-char app_title[10][50], app_titleID[10][50];
+char app_title[5][50], app_titleID[5][50];
 
 SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, int colour);
 SceInt Config_SaveClockConfig(int cpuClock, int gpuClock);
