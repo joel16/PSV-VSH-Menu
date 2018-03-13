@@ -26,7 +26,7 @@ if (NOT ${RELEASE})
 	add_definitions(-DENABLE_LOGGING)
 endif()
 
-add_executable(vsh
+add_executable(${PROJECT_NAME}.elf
 	source/vsh.c
 	source/config.c
 	source/draw.c
@@ -36,22 +36,24 @@ add_executable(vsh
 	source/utils.c
 )
 
-target_link_libraries(vsh
+target_link_libraries(${PROJECT_NAME}.elf
 	taihen_stub
 	SceAppMgr_stub_weak
 	SceDisplay_stub_weak
-	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
 	ScePower_stub_weak
 	SceSysmem_stub_weak
+	kuio_stub_weak
 	k
 	gcc
 )
 
-set_target_properties(vsh
+set_target_properties(${PROJECT_NAME}.elf
 	PROPERTIES LINK_FLAGS "-nostdlib"
 )
 
-vita_create_self(vsh.suprx vsh
-	CONFIG ${CMAKE_SOURCE_DIR}/exports/vsh.yml
+add_custom_target(${PROJECT_NAME}.suprx ALL
+	COMMAND vita-elf-create -e ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml ${PROJECT_NAME}.elf ${PROJECT_NAME}.velf
+	COMMAND vita-make-fself -c ${PROJECT_NAME}.velf ${PROJECT_NAME}.suprx
 )
+add_dependencies(${PROJECT_NAME}.suprx ${PROJECT_NAME}.elf)
