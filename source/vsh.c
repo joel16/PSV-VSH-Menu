@@ -11,6 +11,7 @@
 
 #define MAIN_MAX_ITEMS     9
 #define BATTERY_MAX_ITEMS  3
+#define COLOUR_MAX_ITEMS   8
 #define VSH_MAIN_MENU      1
 #define VSH_BATTERY_MENU   2
 #define VSH_PROGRAM_MENU   3
@@ -301,21 +302,24 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 			{
 				if (pressed_buttons & SCE_CTRL_LEFT)
 				{
-					colour--;
+					if (colour > 0)
+						colour--;
+					else 
+						colour = COLOUR_MAX_ITEMS;
+
 					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
 					Config_LoadConfig();
 				}
 				else if (pressed_buttons & SCE_CTRL_RIGHT)
 				{
-					colour++;
+					if (colour < COLOUR_MAX_ITEMS)
+						colour++;
+					else 
+						colour = 0;
+
 					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
 					Config_LoadConfig();
 				}
-				
-				if (colour > 8)
-					colour = 0;
-				else if (colour < 0)
-					colour = 8;
 			}
 			else if ((selection == 3) && (pressed_buttons & SCE_CTRL_CROSS))
 			{
