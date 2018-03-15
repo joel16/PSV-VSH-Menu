@@ -10,7 +10,7 @@
 #include "utils.h"
 
 #define MAIN_MAX_ITEMS     9
-#define BATTERY_MAX_ITEMS  3
+#define BATTERY_MAX_ITEMS  4
 #define COLOUR_MAX_ITEMS   8
 #define VSH_MAIN_MENU      1
 #define VSH_BATTERY_MENU   2
@@ -51,7 +51,16 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 {
 	drawSetFrameBuf(pParam);
 
-	if (showVSH != 0)
+	if (batteryDisplay)
+	{
+		if (batteryPercent)
+			Power_DisplayBatteryPercentage();
+		if (batteryLifeTime)
+			Power_DisplayBatteryLifetime();
+		if (batteryTemp)
+			Power_DisplayBatteryTemp();
+	}
+	else if ((!batteryDisplay) && (showVSH != 0))
 	{
 		if (batteryPercent)
 			Power_DisplayBatteryPercentage();
@@ -145,9 +154,10 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 		drawSetColour(WHITE, Config_GetVSHColour());
 		
 		drawStringCenter(130, "<- BACK");
-		drawStringfCenter(162, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
-		drawStringfCenter(178, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
-		drawStringfCenter(194, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+		drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", batteryDisplay? "enabled" : "disabled");
+		drawStringfCenter(178, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
+		drawStringfCenter(194, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+		drawStringfCenter(210, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
 		
 		switch(selection)
 		{
@@ -157,15 +167,19 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 				break;
 			case 1:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(162, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
+				drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", batteryDisplay? "enabled" : "disabled");
 				break;
 			case 2:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(178, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+				drawStringfCenter(178, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
 				break;
 			case 3:
 				drawSetColour(WHITE, SKYBLUE);
-				drawStringfCenter(194, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+				drawStringfCenter(194, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+				break;
+			case 4:
+				drawSetColour(WHITE, SKYBLUE);
+				drawStringfCenter(210, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
 				break;
 		}
 	}
@@ -307,7 +321,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 					else 
 						colour = COLOUR_MAX_ITEMS;
 
-					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 					Config_LoadConfig();
 				}
 				else if (pressed_buttons & SCE_CTRL_RIGHT)
@@ -317,7 +331,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 					else 
 						colour = 0;
 
-					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 					Config_LoadConfig();
 				}
 			}
@@ -365,35 +379,41 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 				selection = 0;
 				showVSH = VSH_MAIN_MENU;
 			}
-			else if ((selection == 1) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
+			else
 			{
-				if (!batteryPercent)
-					batteryPercent = SCE_TRUE;
-				else 
-					batteryPercent = SCE_FALSE;
-				
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
-				Config_LoadConfig();
-			}
-			else if ((selection == 2) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
-			{
-				if (!batteryLifeTime)
-					batteryLifeTime = SCE_TRUE;
-				else 
-					batteryLifeTime = SCE_FALSE;
-					
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
-				Config_LoadConfig();
-			}
-			else if ((selection == 3) && ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))) 
-			{
-				if (!batteryTemp)
-					batteryTemp = SCE_TRUE;
-				else 
-					batteryTemp = SCE_FALSE;
-					
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
-				Config_LoadConfig();
+				if ((pressed_buttons & SCE_CTRL_LEFT) || (pressed_buttons & SCE_CTRL_RIGHT))
+				{
+					switch(selection)
+					{
+						case 1:
+							if (!batteryDisplay)
+								batteryDisplay = SCE_TRUE;
+							else 
+								batteryDisplay = SCE_FALSE;
+							break;
+						case 2:
+							if (!batteryPercent)
+								batteryPercent = SCE_TRUE;
+							else 
+								batteryPercent = SCE_FALSE;
+							break;
+						case 3:
+							if (!batteryLifeTime)
+								batteryLifeTime = SCE_TRUE;
+							else 
+								batteryLifeTime = SCE_FALSE;
+							break;
+						case 4:
+							if (!batteryTemp)
+								batteryTemp = SCE_TRUE;
+							else 
+								batteryTemp = SCE_FALSE;
+							break;
+					}
+
+					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+					Config_LoadConfig();
+				}
 			}
 			
 			old_buttons = ctrl->buttons;

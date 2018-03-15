@@ -6,9 +6,10 @@
 #include "utils.h"
 
 const char *menuConfig =
-	"display_battery = %d\n"
+	"display_battery_percent = %d\n"
 	"display_battery_lifetime = %d\n"
 	"display_battery_temp = %d\n"
+	"display_battery_data = %d\n"
 	"bar_colour = %d\n";
 
 const char *clockConfig =
@@ -22,15 +23,15 @@ const char *launcherConfig =
 	"[3] title: %s titleID: %s\n"
 	"[4] title: %s titleID: %s\n";
 
-SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, int colour)
+SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, SceBool batteryDisplay, SceInt colour)
 {
 	SceInt ret = 0;
 	
 	char *menu_config_path = (char *)Utils_SceMalloc(25);
-	sceClibSnprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
+	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
 	
 	char *buf = (char *)Utils_SceMalloc(128);
-	SceInt len = sceClibSnprintf(buf, 128, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, colour);
+	SceInt len = snprintf(buf, 128, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 	
 	if (R_FAILED(ret = FS_WriteFile(menu_config_path, buf, len)))
 	{
@@ -49,10 +50,10 @@ SceInt Config_SaveClockConfig(int cpuClock, int gpuClock)
 	SceInt ret = 0;
 	
 	char *game_config_path = (char *)Utils_SceMalloc(35);
-	sceClibSnprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
+	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
 	
 	char *buf = (char *)Utils_SceMalloc(64);
-	SceInt len = sceClibSnprintf(buf, 64, clockConfig, cpuClock, gpuClock);
+	SceInt len = snprintf(buf, 64, clockConfig, cpuClock, gpuClock);
 	
 	if (R_FAILED(ret = FS_WriteFile(game_config_path, buf, len)))
 	{
@@ -71,23 +72,23 @@ static SceInt Config_SaveLauncherConfig()
 	SceInt ret = 0;
 	
 	char *launcher_config_path = (char *)Utils_SceMalloc(27);
-	sceClibSnprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
+	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
 	
 	char *buf = (char *)Utils_SceMalloc(256);
 	
 	// set these to the following by default:
-	sceClibSnprintf(app_title[0], 9, "Settings");
-	sceClibSnprintf(app_titleID[0], 14, "settings_dlg:");
-	sceClibSnprintf(app_title[1], 10, "VitaShell");
-	sceClibSnprintf(app_titleID[1], 10, "VITASHELL");
-	sceClibSnprintf(app_title[2], 11, "Adrenaline");
-	sceClibSnprintf(app_titleID[2], 10, "PSPEMUCFW");
-	sceClibSnprintf(app_title[3], 5, "VHBB");
-	sceClibSnprintf(app_titleID[3], 10, "VHBB00001");
-	sceClibSnprintf(app_title[4], 10, "VITAident");
-	sceClibSnprintf(app_titleID[4], 10, "VID000162");
+	snprintf(app_title[0], 9, "Settings");
+	snprintf(app_titleID[0], 14, "settings_dlg:");
+	snprintf(app_title[1], 10, "VitaShell");
+	snprintf(app_titleID[1], 10, "VITASHELL");
+	snprintf(app_title[2], 11, "Adrenaline");
+	snprintf(app_titleID[2], 10, "PSPEMUCFW");
+	snprintf(app_title[3], 5, "VHBB");
+	snprintf(app_titleID[3], 10, "VHBB00001");
+	snprintf(app_title[4], 10, "VITAident");
+	snprintf(app_titleID[4], 10, "VID000162");
 	
-	SceInt len = sceClibSnprintf(buf, 256, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
+	SceInt len = snprintf(buf, 256, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	
 	if (R_FAILED(ret = FS_WriteFile(launcher_config_path, buf, len)))
@@ -110,9 +111,9 @@ SceInt Config_LoadConfig(SceVoid)
 	char *menu_config_path = (char *)Utils_SceMalloc(25);
 	char *launcher_config_path = (char *)Utils_SceMalloc(27);
 	
-	sceClibSnprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
-	sceClibSnprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
-	sceClibSnprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
+	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
+	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
+	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
 	
 	if (!(FS_FileExists(game_config_path)))
 	{
@@ -127,8 +128,9 @@ SceInt Config_LoadConfig(SceVoid)
 		batteryPercent = 0;
 		batteryLifeTime = 0;
 		batteryTemp = 0;
+		batteryDisplay = 0;
 		colour = 0;
-		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, colour);
+		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 	}
 	
 	if (!(FS_FileExists(launcher_config_path)))	
@@ -172,7 +174,7 @@ SceInt Config_LoadConfig(SceVoid)
 	}
 	
 	sscanf(buf1, clockConfig, &c_clock, &g_clock);
-	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &colour);
+	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &batteryDisplay, &colour);
 	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	

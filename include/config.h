@@ -3,12 +3,12 @@
 
 #include <vitasdk.h>
 
-SceBool batteryPercent, batteryLifeTime, batteryTemp;
+SceBool batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay;
 int c_clock, g_clock, colour;
 char titleID[16];
 char app_title[5][50], app_titleID[5][50];
 
-SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, int colour);
+SceInt Config_SaveMenuConfig(SceBool, SceBool, SceBool, SceBool, SceInt);
 SceInt Config_SaveClockConfig(int cpuClock, int gpuClock);
 SceInt Config_LoadConfig(SceVoid);
 int Config_GetVSHColour();
