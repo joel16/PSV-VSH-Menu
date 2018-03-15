@@ -20,7 +20,7 @@ SceInt Utils_LaunchAppByUriExit(char *titleid)
 	
 	if (strlen(titleid) == 9) // Game or App titleID
 	{
-		sceClibPrintf(uri, "psgm:play?titleid=%s", titleid);
+		sprintf(uri, "psgm:play?titleid=%s", titleid);
 		
 		if (R_FAILED(ret = sceAppMgrLaunchAppByUri(0xFFFFF, uri)))
 			return ret;

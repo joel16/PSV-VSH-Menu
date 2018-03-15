@@ -65,7 +65,7 @@ SceVoid FS_RecursiveMakeDir(const char *path)
 	char *p = NULL;
 	size_t len;
 
-	sceClibSnprintf(tmp, sizeof(tmp), "%s", path);
+	snprintf(tmp, sizeof(tmp), "%s", path);
 	len = strlen(tmp);
 
 	if (tmp[len - 1] == '/')
