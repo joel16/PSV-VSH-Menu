@@ -1,0 +1,25 @@
+language: c
+
+sudo: required
+
+before_install:
+  - export DEBIAN_FRONTEND=noninteractive
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install gcc-4.9 libstdc++6 -y
+  - sudo apt-get install python3 -y
+  - export VITASDK=/usr/local/vitasdk
+  - export PATH=$VITASDK/bin:$PATH # add vitasdk tool to $PATH
+  - sh tools/.travis-deps.sh
+
+install:  chmod 755 -R $TRAVIS_BUILD_DIR
+
+script:
+  - sh tools/.build.sh
+  
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  on:
+    branch: master
