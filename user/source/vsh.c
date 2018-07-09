@@ -457,7 +457,7 @@ SceInt checkButtons(SceInt port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, Sce
 			if ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 			{	
 				sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
-				FS_RecursiveMakeDir("ur0:/data/vsh/titles");
+				FS_RecursiveMakeDir("ux0:/data/vsh/titles");
 				Config_LoadConfig();
 
 				if (c_clock == -1)

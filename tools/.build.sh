@@ -2,7 +2,10 @@
 set -e
 set -x
 
-cmake -G "Unix Makefiles"
-make clean && make
-rm .travis.yml CMakeCache.txt cmake_install.cmake LICENSE README.md vsh.elf vsh.velf CMakeLists.txt Makefile
-rm -rf exports CMakeFiles include source tools
+cd kernel && cmake -G "Unix Makefiles" && make clean && make 
+cd..
+cd user && cmake -G "Unix Makefiles" && make clean && make 
+cd ..
+mv kernel/vsh.skprx . && mv user/vsh.suprx .
+rm .travis.yml LICENSE README.md
+rm -rf kernel user tools

@@ -28,32 +28,21 @@ endif()
 
 add_executable(${PROJECT_NAME}.elf
 	source/vsh.c
-	source/config.c
-	source/draw.c
-	source/font.c
-	source/fs.c
-	source/power.c
-	source/utils.c
 )
 
 target_link_libraries(${PROJECT_NAME}.elf
-	taihen_stub
-	SceAppMgr_stub_weak
-	SceDisplay_stub_weak
-	SceLibKernel_stub_weak
-	ScePower_stub_weak
-	SceSysmem_stub_weak
-	kuio_stub_weak
-	k
-	gcc
+	taihenForKernel_stub
+	SceModulemgrForDriver_stub
+	SceIofilemgrForDriver_stub
+	SceSysmemForDriver_stub
+	SceSysrootForKernel_stub
 )
 
 set_target_properties(${PROJECT_NAME}.elf
-	PROPERTIES LINK_FLAGS "-nostdlib"
+	PROPERTIES LINK_FLAGS "-nostdlib" COMPILE_FLAGS "-std=gnu99 -D__VITA_KERNEL__ ${KERNEL_DEBUG_DEFS}"
 )
 
-add_custom_target(${PROJECT_NAME}.suprx ALL
-	COMMAND vita-elf-create -e ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml ${PROJECT_NAME}.elf ${PROJECT_NAME}.velf
-	COMMAND vita-make-fself -c ${PROJECT_NAME}.velf ${PROJECT_NAME}.suprx
-)
-add_dependencies(${PROJECT_NAME}.suprx ${PROJECT_NAME}.elf)
+vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}.elf UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml)
+vita_create_stubs(${PROJECT_NAME}-stubs ${PROJECT_NAME}.elf ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml KERNEL)
+
+add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME}.elf)
