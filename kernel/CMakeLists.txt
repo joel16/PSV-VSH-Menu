@@ -26,23 +26,24 @@ if (NOT ${RELEASE})
 	add_definitions(-DENABLE_LOGGING)
 endif()
 
-add_executable(${PROJECT_NAME}.elf
+add_executable(${PROJECT_NAME}
 	source/vsh.c
 )
 
-target_link_libraries(${PROJECT_NAME}.elf
+target_link_libraries(${PROJECT_NAME}
 	taihenForKernel_stub
+	SceCpuForDriver_stub
 	SceModulemgrForDriver_stub
 	SceIofilemgrForDriver_stub
 	SceSysmemForDriver_stub
 	SceSysrootForKernel_stub
 )
 
-set_target_properties(${PROJECT_NAME}.elf
+set_target_properties(${PROJECT_NAME}
 	PROPERTIES LINK_FLAGS "-nostdlib" COMPILE_FLAGS "-std=gnu99 -D__VITA_KERNEL__ ${KERNEL_DEBUG_DEFS}"
 )
 
-vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}.elf UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml)
-vita_create_stubs(${PROJECT_NAME}-stubs ${PROJECT_NAME}.elf ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml KERNEL)
+vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME} UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml)
+vita_create_stubs(${PROJECT_NAME}-stubs ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml KERNEL)
 
-add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME}.elf)
+add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME})
