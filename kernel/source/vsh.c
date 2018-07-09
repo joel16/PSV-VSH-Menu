@@ -34,7 +34,7 @@ static SceUID ksceKernelLoadStartModuleForPid_Patched(SceUID pid)
 
 	int ret = 0;
 
-	if (R_SUCCEEDED(TAI_CONTINUE(int, ref_hooks[0], pid))) 
+	if (R_SUCCEEDED(ret = TAI_CONTINUE(int, ref_hooks[0], pid))) 
 	{
 		char titleid[32];
 		int result = 0;
@@ -42,9 +42,10 @@ static SceUID ksceKernelLoadStartModuleForPid_Patched(SceUID pid)
 		if (R_FAILED(ret = ksceKernelGetProcessTitleId(pid, titleid, 32)))
 			return ret;
 		
-		ksceKernelLoadStartModuleForPid(pid, "ux0:/tai/vsh.suprx", 0, NULL, 0, NULL, &result);
+		if (R_FAILED(ret = ksceKernelLoadStartModuleForPid(pid, "ux0:/tai/vsh.suprx", 0, NULL, 0, NULL, &result)))
+			return ret;
 	}
-	
+
 	return ret;
 }
 
@@ -80,7 +81,9 @@ static int ksceIoMkdir_Patched(const char *dirname, SceIoMode mode, sceIoMkdirOp
 	if (R_FAILED(ret = TAI_CONTINUE(int, ref_hooks[2], dirname, mode, opt)))
 	{
 		char path[128];
-		ksceKernelStrncpyUserToKernel(path, (uintptr_t)dirname, sizeof(path));
+
+		if (R_FAILED(ret = ksceKernelStrncpyUserToKernel(path, (uintptr_t)dirname, sizeof(path))))
+			return ret;
 		
 		if (R_FAILED(ret = ksceIoMkdir(path, mode)))
 			return ret;
