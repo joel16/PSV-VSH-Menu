@@ -11,7 +11,7 @@ endif()
 project(vsh)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 	
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Werror -O3 -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
@@ -26,11 +26,11 @@ if (NOT ${RELEASE})
 	add_definitions(-DENABLE_LOGGING)
 endif()
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}.elf
 	source/vsh.c
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}.elf
 	taihenForKernel_stub
 	SceCpuForDriver_stub
 	SceModulemgrForDriver_stub
@@ -39,11 +39,15 @@ target_link_libraries(${PROJECT_NAME}
 	SceSysrootForKernel_stub
 )
 
-set_target_properties(${PROJECT_NAME}
-	PROPERTIES LINK_FLAGS "-nostdlib" COMPILE_FLAGS "-std=gnu99 -D__VITA_KERNEL__ ${KERNEL_DEBUG_DEFS}"
+set_target_properties(${PROJECT_NAME}.elf
+	PROPERTIES LINK_FLAGS "-nostdlib" COMPILE_FLAGS "-D__VITA_KERNEL__"
 )
 
-vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME} UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml)
-vita_create_stubs(${PROJECT_NAME}-stubs ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml KERNEL)
+add_custom_target(${PROJECT_NAME}.skprx ALL
+	COMMAND vita-elf-create -e ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml ${PROJECT_NAME}.elf ${PROJECT_NAME}.velf
+	COMMAND vita-make-fself -c ${PROJECT_NAME}.velf ${PROJECT_NAME}.skprx
+)
 
-add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME}.elf)
+
+vita_create_stubs(${PROJECT_NAME}-stubs ${PROJECT_NAME}.elf ${CMAKE_SOURCE_DIR}/exports/${PROJECT_NAME}.yml KERNEL)
