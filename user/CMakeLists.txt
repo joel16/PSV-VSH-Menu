@@ -36,14 +36,17 @@ add_executable(${PROJECT_NAME}.elf
 	source/utils.c
 )
 
+get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
+
 target_link_libraries(${PROJECT_NAME}.elf
+	${PARENT_DIR}/kernel/vsh-stubs/libvsh_stub_weak.a
 	taihen_stub
 	SceAppMgr_stub_weak
 	SceDisplay_stub_weak
+	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
 	ScePower_stub_weak
 	SceSysmem_stub_weak
-	kuio_stub_weak
 	k
 	gcc
 )

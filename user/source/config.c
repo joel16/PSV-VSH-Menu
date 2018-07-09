@@ -28,7 +28,7 @@ SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, Sc
 	SceInt ret = 0;
 	
 	char *menu_config_path = (char *)Utils_SceMalloc(25);
-	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
+	snprintf(menu_config_path, 25, "ux0:/data/vsh/config.cfg");
 	
 	char *buf = (char *)Utils_SceMalloc(128);
 	SceInt len = snprintf(buf, 128, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
@@ -50,7 +50,7 @@ SceInt Config_SaveClockConfig(int cpuClock, int gpuClock)
 	SceInt ret = 0;
 	
 	char *game_config_path = (char *)Utils_SceMalloc(35);
-	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
+	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
 	
 	char *buf = (char *)Utils_SceMalloc(64);
 	SceInt len = snprintf(buf, 64, clockConfig, cpuClock, gpuClock);
@@ -72,7 +72,7 @@ static SceInt Config_SaveLauncherConfig()
 	SceInt ret = 0;
 	
 	char *launcher_config_path = (char *)Utils_SceMalloc(27);
-	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
+	snprintf(launcher_config_path, 27, "ux0:/data/vsh/launcher.cfg");
 	
 	char *buf = (char *)Utils_SceMalloc(256);
 	
@@ -111,9 +111,9 @@ SceInt Config_LoadConfig(SceVoid)
 	char *menu_config_path = (char *)Utils_SceMalloc(25);
 	char *launcher_config_path = (char *)Utils_SceMalloc(27);
 	
-	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
-	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
-	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
+	snprintf(game_config_path, 35, "ux0:/data/vsh/titles/%s.cfg", titleID);
+	snprintf(menu_config_path, 25, "ux0:/data/vsh/config.cfg");
+	snprintf(launcher_config_path, 27, "ux0:/data/vsh/launcher.cfg");
 	
 	if (!(FS_FileExists(game_config_path)))
 	{
