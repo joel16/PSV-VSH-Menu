@@ -15,6 +15,12 @@ static tai_hook_ref_t ref_hooks[HOOKS_NUM];
 #define R_FAILED(res)      ((res)<0)
 /// Returns the level of a result code.
 
+typedef struct sceIoOpenOpt
+{
+	uint32_t unk_0;
+	uint32_t unk_4;
+} sceIoOpenOpt;
+
 typedef struct sceIoMkdirOpt 
 {
 	uint32_t unk_0;
@@ -42,7 +48,7 @@ static SceUID ksceKernelLoadStartModuleForPid_Patched(SceUID pid)
 	return ret;
 }
 
-static int ksceIoOpen_Patched(SceUID pid, const char *file, int flags, SceMode mode) 
+static int ksceIoOpen_Patched(SceUID pid, const char *file, int flags, SceMode mode, sceIoOpenOpt *opt) 
 {
 	if (ref_hooks[1] == 0)
 		return -1;
@@ -51,7 +57,7 @@ static int ksceIoOpen_Patched(SceUID pid, const char *file, int flags, SceMode m
 
 	ENTER_SYSCALL(state);
 	
-	if (R_FAILED(ret = TAI_CONTINUE(int, ref_hooks[1], pid, file, flags, mode)))
+	if (R_FAILED(ret = TAI_CONTINUE(int, ref_hooks[1], pid, file, flags, mode, opt)))
 	{
 		if (R_FAILED(ret = ksceIoOpen(file, flags, mode)))
 			return ret;
