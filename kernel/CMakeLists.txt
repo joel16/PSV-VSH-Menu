@@ -33,6 +33,7 @@ add_executable(${PROJECT_NAME}.elf
 target_link_libraries(${PROJECT_NAME}.elf
 	taihenForKernel_stub
 	SceCpuForDriver_stub
+	SceCtrlForDriver_stub
 	SceModulemgrForDriver_stub
 	SceIofilemgrForDriver_stub
 	SceSysmemForDriver_stub

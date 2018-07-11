@@ -93,7 +93,6 @@ SceInt drawString(SceInt sx, SceInt sy, const char *msg)
 	bg_col = bcolor;
 #endif
 
-//Kprintf("MODE %d WIDTH %d\n",pixelformat,bufferwidth);
 	if ((bufferwidth == 0) || (pixelformat != 0)) 
 		return -1;
 
@@ -149,7 +148,7 @@ SceInt drawString(SceInt sx, SceInt sy, const char *msg)
 */
 SceInt drawStringCenter(SceInt sy, const char *msg)
 {
-	SceInt sx = (960 / 2) - (strlen(msg) * (16 / 2));
+	SceInt sx = (960 / 2) - (strlen(msg) * (8));
 	return drawString(sx, sy, msg);
 }
 
@@ -165,7 +164,7 @@ SceInt drawStringfCenter(SceInt sy, const char *msg, ...)
 	vsnprintf(string, 512, msg, list);
 	va_end(list);
 	
-	SceInt sx = (960 / 2) - (strlen(string) * (16 / 2));
+	SceInt sx = (960 / 2) - (strlen(string) * (8));
 	return drawString(sx, sy, string);
 }
 
@@ -226,4 +225,9 @@ SceVoid drawRect(SceUInt32 x, SceUInt32 y, SceUInt32 w, SceUInt32 h, SceUInt32 c
 			((SceUInt32 *)vram32)[(x + j) + (y + i) * bufferwidth] = color;
 		}
 	}
+}
+
+SceVoid drawClear(SceVoid)
+{
+	memset(vram32, 0, bufferwidth * pheight * 4);
 }

@@ -32,7 +32,9 @@ add_executable(${PROJECT_NAME}.elf
 	source/draw.c
 	source/font.c
 	source/fs.c
+	source/menus.c
 	source/power.c
+	source/threads.c
 	source/utils.c
 )
 
@@ -42,9 +44,12 @@ target_link_libraries(${PROJECT_NAME}.elf
 	${PARENT_DIR}/kernel/vsh-stubs/libvsh_stub_weak.a
 	taihen_stub
 	SceAppMgr_stub_weak
+	SceAppUtil_stub_weak
+	SceCtrl_stub_weak
 	SceDisplay_stub_weak
 	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
+	SceKernelThreadMgr_stub_weak
 	ScePower_stub_weak
 	SceSysmem_stub_weak
 	k

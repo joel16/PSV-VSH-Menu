@@ -1,3 +1,4 @@
+#include <psp2kern/ctrl.h>
 #include <psp2kern/io/fcntl.h>
 #include <psp2kern/io/stat.h>
 #include <psp2kern/kernel/cpu.h>
@@ -37,13 +38,23 @@ static SceUID ksceKernelLoadStartModuleForPid_Patched(SceUID pid)
 	if (R_SUCCEEDED(ret = TAI_CONTINUE(int, ref_hooks[0], pid))) 
 	{
 		char titleid[32];
-		int result = 0;
+		int res = 0;
 
 		if (R_FAILED(ret = ksceKernelGetProcessTitleId(pid, titleid, 32)))
 			return ret;
+
+		// Only allow VSH to work on vita game titleIDs
+		if ((titleid[0] == 'P') && (titleid[1] == 'C') && (titleid[2] == 'S'))
+		{
+			SceCtrlData pad_data;
+			int ctrl = ksceCtrlPeekBufferPositive(0, &pad_data, 1);
+			
+			if (ctrl > 0 && (pad_data.buttons & (SCE_CTRL_SELECT)))
+				return ret;
 		
-		if (R_FAILED(ret = ksceKernelLoadStartModuleForPid(pid, "ux0:/tai/vsh.suprx", 0, NULL, 0, NULL, &result)))
-			return ret;
+			if (R_FAILED(ret = ksceKernelLoadStartModuleForPid(pid, "ux0:/tai/vsh.suprx", 0, NULL, 0, NULL, &res)))
+				return ret;
+		}
 	}
 
 	return ret;
