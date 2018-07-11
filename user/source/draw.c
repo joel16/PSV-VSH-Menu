@@ -38,9 +38,6 @@ static SceUInt32 adjust_alpha(SceUInt32 col)
 }
 #endif
 
-/*
-*	Sets up draw functions.
-*/
 SceInt drawInit(SceVoid)
 {
 	SceDisplayFrameBuf param;
@@ -62,18 +59,12 @@ SceInt drawInit(SceVoid)
 	return 0;
 }
 
-/*
-*	This function sets the string colour, as well as the background colour.
-*/
 SceVoid drawSetColour(SceInt fg_col, SceInt bg_col)
 {
 	fcolor = fg_col;
 	bcolor = bg_col;
 }
 
-/*
-*	This function draws a string onto the screen.
-*/
 SceInt drawString(SceInt sx, SceInt sy, const char *msg)
 {
 	SceInt x, y, p;
@@ -143,18 +134,12 @@ SceInt drawString(SceInt sx, SceInt sy, const char *msg)
 	return x;
 }
 
-/*
-*	This function draws a string onto the center of the screen.
-*/
 SceInt drawStringCenter(SceInt sy, const char *msg)
 {
-	SceInt sx = (960 / 2) - (strlen(msg) * (8));
+	SceInt sx = (960 / 2) - (strlen(msg) * 8);
 	return drawString(sx, sy, msg);
 }
 
-/*
-*	This function draws a string onto the center of the screen with string specifier formats.
-*/
 SceInt drawStringfCenter(SceInt sy, const char *msg, ...)
 {
 	va_list list;
@@ -164,13 +149,10 @@ SceInt drawStringfCenter(SceInt sy, const char *msg, ...)
 	vsnprintf(string, 512, msg, list);
 	va_end(list);
 	
-	SceInt sx = (960 / 2) - (strlen(string) * (8));
+	SceInt sx = (960 / 2) - (strlen(string) * 8);
 	return drawString(sx, sy, string);
 }
 
-/*
-*	This function draws a string onto the screen with string specifier formats.
-*/
 SceInt drawStringf(SceInt sx, SceInt sy, const char *msg, ...)
 {
 	va_list list;
@@ -183,9 +165,6 @@ SceInt drawStringf(SceInt sx, SceInt sy, const char *msg, ...)
 	return drawString(sx, sy, string);
 }
 
-/*
-*	This function sets the frame buffer.
-*/
 SceInt drawSetFrameBuf(const SceDisplayFrameBuf *param)
 {	
 	pwidth = param->width;
@@ -203,9 +182,6 @@ SceInt drawSetFrameBuf(const SceDisplayFrameBuf *param)
 	return 0;
 }
 
-/*
-*	Draws a rectangle with a specified width, height and colour onto a screen.
-*/
 SceVoid drawRect(SceUInt32 x, SceUInt32 y, SceUInt32 w, SceUInt32 h, SceUInt32 col)
 {
 	SceUInt32 c1,c2;

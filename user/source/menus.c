@@ -323,6 +323,7 @@ SceInt Menu_HandleControls(SceVoid)
 					else 
 						colour = COLOUR_MAX_ITEMS;
 
+					drawClear();
 					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 					Config_LoadConfig();
 				}
@@ -333,6 +334,7 @@ SceInt Menu_HandleControls(SceVoid)
 					else 
 						colour = 0;
 
+					drawClear();
 					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 					Config_LoadConfig();
 				}
@@ -390,20 +392,23 @@ SceInt Menu_HandleControls(SceVoid)
 					switch(selection)
 					{
 						case 1:
+							drawClear();
 							batteryDisplay = !batteryDisplay;
 							break;
 						case 2:
+							drawClear();
 							batteryPercent = !batteryPercent;
 							break;
 						case 3:
+							drawClear();
 							batteryLifeTime = !batteryLifeTime;
 							break;
 						case 4:
+							drawClear();
 							batteryTemp = !batteryTemp;
 							break;
 					}
 
-					drawClear();
 					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 					Config_LoadConfig();
 				}
