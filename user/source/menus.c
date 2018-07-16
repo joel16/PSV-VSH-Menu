@@ -2,22 +2,14 @@
 #include "draw.h"
 #include "menus.h"
 #include "power.h"
-#include "threads.h"
 #include "utils.h"
-
-#define VSH_MAIN_MENU      1
-#define VSH_BATTERY_MENU   2
-#define VSH_PROGRAM_MENU   3
 
 #define MAIN_MAX_ITEMS     9
 #define BATTERY_MAX_ITEMS  4
 #define COLOUR_MAX_ITEMS   8
 
-SceInt showVSH = 0;
-static SceInt selection = 0;
 static SceInt app_list = 0;
-
-static SceUInt32 pressed_buttons = 0;
+SceInt selection = 0;
 
 SceInt profile_max_battery[] = {111, 111, 111, 111};
 SceInt profile_default[] = {266, 166, 166, 111};
@@ -114,8 +106,6 @@ static SceVoid Menu_DisplayMainMenu(SceVoid)
 			break;
 	}
 }
-
-int sceCtrlPeekBufferPositive2(int port, SceCtrlData *pad_data, int count);
 
 static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 {
@@ -217,7 +207,7 @@ static SceVoid Menu_DisplayProgramMenu(SceVoid)
 	}
 }
 
-static SceVoid Menu_Display(SceBool vertical_blank)
+SceVoid Menu_Display(SceBool vertical_blank)
 {
 	if (vertical_blank)
 		drawInit();
@@ -252,233 +242,176 @@ static SceVoid Menu_Display(SceBool vertical_blank)
 		sceDisplayWaitVblankStart();
 }
 
-SceInt Menu_HandleControls(SceVoid) 
+SceInt Menu_HandleControls(SceUInt32 pad)
 {
-	SceCtrlData pad, old_pad;
-	SceInt ret = 0;
-	
-	memset(&pad, 0, sizeof(SceCtrlData));
-
-	if (sceCtrlPeekBufferPositive2(0, &pad, 1) > 0)
+	if (showVSH == 1) // Main VSH Menu
 	{
-		pressed_buttons = pad.buttons & ~old_pad.buttons;
-		old_pad = pad;
-
-		if (showVSH == 1) // Main VSH Menu
+		if (pad & SCE_CTRL_DOWN)
+			selection += 1;
+		else if (pad & SCE_CTRL_UP)
+			selection -= 1;
+			
+		if (selection == (MAIN_MAX_ITEMS + 1))
+			selection = 0;
+		if (selection == -1)
+			selection = MAIN_MAX_ITEMS;
+			
+		if (selection == 0) 
 		{
-			if ((pressed_buttons & SCE_CTRL_DOWN) == SCE_CTRL_DOWN)
-				selection += 1;
-			else if ((pressed_buttons & SCE_CTRL_UP) == SCE_CTRL_UP)
-				selection -= 1;
-			
-			if (selection == (MAIN_MAX_ITEMS + 1))
-				selection = 0;
-			if (selection == -1)
-				selection = MAIN_MAX_ITEMS;
-			
-			if (selection == 0) 
+			if ((pad & SCE_CTRL_LEFT) && (c_clock > 0))
 			{
-				if (((pressed_buttons & SCE_CTRL_LEFT) == SCE_CTRL_LEFT) && (c_clock > 0))
-				{
-					c_clock--;
-					scePowerSetArmClockFrequency(profiles[c_clock][0]);
-					scePowerSetBusClockFrequency(profiles[c_clock][1]);
-					Config_SaveClockConfig(c_clock, g_clock);
-					Config_LoadConfig();
-				}
-				else if (((pressed_buttons & SCE_CTRL_RIGHT) == SCE_CTRL_RIGHT) && (c_clock < 3))
-				{
-					c_clock++;
-					scePowerSetArmClockFrequency(profiles[c_clock][0]);
-					scePowerSetBusClockFrequency(profiles[c_clock][1]);
-					Config_SaveClockConfig(c_clock, g_clock);
-					Config_LoadConfig();
-				}
+				c_clock--;
+				scePowerSetArmClockFrequency(profiles[c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[c_clock][1]);
+				Config_SaveClockConfig(c_clock, g_clock);
+				Config_LoadConfig();
 			}
-			else if (selection == 1)
+			else if ((pad & SCE_CTRL_RIGHT) && (c_clock < 3))
 			{
-				if (((pressed_buttons & SCE_CTRL_LEFT) == SCE_CTRL_LEFT) && (g_clock > 0))
-				{
-					g_clock--;
-					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-					Config_SaveClockConfig(c_clock, g_clock);
-					Config_LoadConfig();
-				}
-				else if (((pressed_buttons & SCE_CTRL_RIGHT) == SCE_CTRL_RIGHT) && (g_clock < 3))
-				{
-					g_clock++;
-					scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-					scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-					Config_SaveClockConfig(c_clock, g_clock);
-					Config_LoadConfig();
-				}
-			}
-			else if (selection == 2)
-			{
-				if ((pressed_buttons & SCE_CTRL_LEFT) == SCE_CTRL_LEFT)
-				{
-					if (colour > 0)
-						colour--;
-					else 
-						colour = COLOUR_MAX_ITEMS;
-
-					drawClear();
-					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
-					Config_LoadConfig();
-				}
-				else if ((pressed_buttons & SCE_CTRL_RIGHT) == SCE_CTRL_RIGHT)
-				{
-					if (colour < COLOUR_MAX_ITEMS)
-						colour++;
-					else 
-						colour = 0;
-
-					drawClear();
-					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
-					Config_LoadConfig();
-				}
-			}
-			else if ((selection == 3) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER))
-			{
-				drawClear();
-				selection = 0;
-				showVSH = VSH_BATTERY_MENU;
-			}
-			else if ((selection == 4) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER))
-			{
-				drawClear();
-				selection = 0;
-				showVSH = VSH_PROGRAM_MENU;
-			}
-			else if ((selection == 5) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)) 
-				scePowerRequestStandby();
-			else if ((selection == 6) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)) 
-				scePowerRequestSuspend();
-			else if ((selection == 7) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)) 
-				scePowerRequestColdReset();
-			else if ((selection == 8) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER))
-				Utils_RestartVSH();
-			else if (((selection == 9) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)) || (pressed_buttons & ((pressed_buttons & SCE_CTRL_CANCEL) == SCE_CTRL_CANCEL)))
-			{
-				drawClear();
-				selection = 0;
-				showVSH = 0;
-				Thread_ResumeMainThread();
+				c_clock++;
+				scePowerSetArmClockFrequency(profiles[c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[c_clock][1]);
+				Config_SaveClockConfig(c_clock, g_clock);
+				Config_LoadConfig();
 			}
 		}
-		else if (showVSH == VSH_BATTERY_MENU)
+		else if (selection == 1)
 		{
-			if ((pressed_buttons & SCE_CTRL_DOWN) == SCE_CTRL_DOWN)
-				selection += 1;
-			else if ((pressed_buttons & SCE_CTRL_UP) == SCE_CTRL_UP)
-				selection -= 1;
-			
-			if (selection == (BATTERY_MAX_ITEMS + 1))
-				selection = 0;
-			if (selection == -1)
-				selection = BATTERY_MAX_ITEMS;
-			
-			if (((selection == 0) && ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)) || (pressed_buttons & ((pressed_buttons & SCE_CTRL_CANCEL) == SCE_CTRL_CANCEL)))
+			if ((pad & SCE_CTRL_LEFT) && (g_clock > 0))
 			{
-				drawClear();
+				g_clock--;
+				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+				Config_SaveClockConfig(c_clock, g_clock);
+				Config_LoadConfig();
+			}
+			else if ((pad & SCE_CTRL_RIGHT) && (g_clock < 3))
+			{
+				g_clock++;
+				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+				Config_SaveClockConfig(c_clock, g_clock);
+				Config_LoadConfig();
+			}
+		}
+		else if (selection == 2)
+		{
+			if (pad & SCE_CTRL_LEFT)
+			{
+				if (colour > 0)
+					colour--;
+				else 
+					colour = COLOUR_MAX_ITEMS;
+				
+				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+				Config_LoadConfig();
+			}
+			else if (pad & SCE_CTRL_RIGHT)
+			{
+				if (colour < COLOUR_MAX_ITEMS)
+					colour++;
+				else 
+					colour = 0;
+
+				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+				Config_LoadConfig();
+			}
+		}
+		else if ((selection == 3) && (pad & SCE_CTRL_ENTER))
+		{
+			selection = 0;
+			showVSH = VSH_BATTERY_MENU;
+		}
+		else if ((selection == 4) && (pad & SCE_CTRL_ENTER))
+		{
+			selection = 0;
+			showVSH = VSH_PROGRAM_MENU;
+		}
+		else if ((selection == 5) && (pad & SCE_CTRL_ENTER)) 
+			scePowerRequestStandby();
+		else if ((selection == 6) && (pad & SCE_CTRL_ENTER)) 
+			scePowerRequestSuspend();
+		else if ((selection == 7) && (pad & SCE_CTRL_ENTER)) 
+			scePowerRequestColdReset();
+		else if ((selection == 8) && (pad & SCE_CTRL_ENTER))
+			Utils_RestartVSH();
+		else if (((selection == 9) && (pad & SCE_CTRL_ENTER)) || (pad & SCE_CTRL_CANCEL))
+		{
+			selection = 0;
+			showVSH = 0;
+		}
+	}
+	else if (showVSH == VSH_BATTERY_MENU)
+	{
+		if (pad & SCE_CTRL_DOWN)
+			selection += 1;
+		else if (pad & SCE_CTRL_UP)
+			selection -= 1;
+			
+		if (selection == (BATTERY_MAX_ITEMS + 1))
+			selection = 0;
+		if (selection == -1)
+			selection = BATTERY_MAX_ITEMS;
+		
+		if (((selection == 0) && (pad & SCE_CTRL_ENTER)) || (pad & SCE_CTRL_CANCEL))
+		{
+			selection = 0;
+			showVSH = VSH_MAIN_MENU;
+		}
+		else
+		{
+			if ((pad & SCE_CTRL_LEFT) || (pad & SCE_CTRL_RIGHT))
+			{
+				switch(selection)
+				{
+					case 1:
+						batteryDisplay = !batteryDisplay;
+						break;
+					case 2:
+						batteryPercent = !batteryPercent;
+						break;
+					case 3:
+						batteryLifeTime = !batteryLifeTime;
+						break;
+					case 4:
+						batteryTemp = !batteryTemp;
+						break;
+				}
+
+				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+				Config_LoadConfig();
+			}
+		}
+	}
+	else if (showVSH == VSH_PROGRAM_MENU)
+	{
+		if (pad & SCE_CTRL_DOWN)
+			selection += 1;
+		else if (pad & SCE_CTRL_UP)
+			selection -= 1;
+			
+		if (selection == (app_list + 1))
+			selection = 0;
+		if (selection == -1)
+			selection = app_list;
+			
+		if (selection == 0)
+		{
+			if ((pad & SCE_CTRL_ENTER) || (pad & SCE_CTRL_CANCEL))
+			{
 				selection = 0;
 				showVSH = VSH_MAIN_MENU;
-			}
-			else
-			{
-				if (((pressed_buttons & SCE_CTRL_LEFT) == SCE_CTRL_LEFT) || ((pressed_buttons & SCE_CTRL_RIGHT) == SCE_CTRL_RIGHT))
-				{
-					switch(selection)
-					{
-						case 1:
-							drawClear();
-							batteryDisplay = !batteryDisplay;
-							break;
-						case 2:
-							drawClear();
-							batteryPercent = !batteryPercent;
-							break;
-						case 3:
-							drawClear();
-							batteryLifeTime = !batteryLifeTime;
-							break;
-						case 4:
-							drawClear();
-							batteryTemp = !batteryTemp;
-							break;
-					}
-
-					Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
-					Config_LoadConfig();
-				}
-			}
-		}
-		else if (showVSH == VSH_PROGRAM_MENU)
-		{
-			if ((pressed_buttons & SCE_CTRL_DOWN) == SCE_CTRL_DOWN)
-				selection += 1;
-			else if ((pressed_buttons & SCE_CTRL_UP) == SCE_CTRL_UP)
-				selection -= 1;
-			
-			if (selection == (app_list + 1))
-				selection = 0;
-			if (selection == -1)
-				selection = app_list;
-			
-			if (selection == 0)
-			{
-				if (((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER) || (pressed_buttons & ((pressed_buttons & SCE_CTRL_CANCEL) == SCE_CTRL_CANCEL)))
-				{
-					drawClear();
-					selection = 0;
-					showVSH = VSH_MAIN_MENU;
-				}
-			}
-			else
-			{
-				if ((pressed_buttons & SCE_CTRL_ENTER) == SCE_CTRL_ENTER)
-				{
-					if (strlen(app_title[selection - 1]) != 0)
-						Utils_LaunchAppByUriExit(app_titleID[selection - 1]);
-				}
-				
 			}
 		}
 		else
 		{
-			if ((pressed_buttons & (SCE_CTRL_L1 | SCE_CTRL_R1 | SCE_CTRL_START)) == (SCE_CTRL_L1 | SCE_CTRL_R1 | SCE_CTRL_START))
+			if (pad & SCE_CTRL_ENTER)
 			{
-				if (c_clock == -1)
-				{
-					profile_game[0] = scePowerGetArmClockFrequency();
-					profile_game[1] = scePowerGetBusClockFrequency();
-					c_clock = 0;
-				}
-				
-				if (g_clock == -1)
-				{
-					profile_game[2] = scePowerGetGpuClockFrequency();
-					profile_game[3] = scePowerGetGpuXbarClockFrequency();
-					g_clock = 0;
-				}
-
-				scePowerSetArmClockFrequency(profiles[c_clock][0]);
-				scePowerSetBusClockFrequency(profiles[c_clock][1]);
-				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-				
-				drawClear();
-				showVSH = VSH_MAIN_MENU;
-				Thread_PauseMainThread();
-			}
+				if (strlen(app_title[selection - 1]) != 0)
+					Utils_LaunchAppByUriExit(app_titleID[selection - 1]);
+			}		
 		}
 	}
 
-	if (showVSH == 0)
-		return ret;
-
-	Menu_Display(1);
-
-	return ret;
+	return 0;
 }

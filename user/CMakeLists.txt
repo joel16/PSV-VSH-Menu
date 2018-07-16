@@ -34,7 +34,6 @@ add_executable(${PROJECT_NAME}.elf
 	source/fs.c
 	source/menus.c
 	source/power.c
-	source/threads.c
 	source/utils.c
 )
 

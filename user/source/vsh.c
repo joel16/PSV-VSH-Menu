@@ -10,64 +10,111 @@
 #include "power.h"
 #include "utils.h"
 
-#define HOOKS_NUM 5
+#define HOOKS_NUM 9
 
-static SceUID g_hooks[HOOKS_NUM];
-static tai_hook_ref_t ref_hook[HOOKS_NUM];
+static SceUID tai_uid[HOOKS_NUM];
+static tai_hook_ref_t hook[HOOKS_NUM];
 
-static SceBool run_thread = SCE_TRUE;
+SceInt showVSH = 0;
 
-//static SceUID drawMutex = -1;
-
-SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
+static SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
 {
-	if (ref_hook[0] == 0)
+	if (hook[0] == 0)
 		return -1;
 	
 	if (showVSH != 0)
+	{
 		drawSetFrameBuf(pParam);
+		Menu_Display(SCE_FALSE);
+	}
 	
-    return TAI_CONTINUE(SceInt, ref_hook[0], pParam, sync);
+    return TAI_CONTINUE(SceInt, hook[0], pParam, sync);
 }
 
-static SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t ref_hook, SceInt port, SceInt freq)
+static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, int count)
+{
+	int ret = 0;
+
+	if (hook == 0)
+		ret = 1;
+	else
+	{
+    	ret = TAI_CONTINUE(int, hook, port, ctrl, count);
+	
+		if (showVSH == 0)
+		{
+			if ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
+				showVSH = VSH_MAIN_MENU;
+		}
+		else if (showVSH != 0)
+		{
+			pressed_buttons = ctrl->buttons & ~old_buttons;
+
+			Menu_HandleControls(pressed_buttons);
+
+			old_buttons = ctrl->buttons;
+			ctrl->buttons = 0;
+		}
+	}
+
+	return ret;
+}
+
+static SceInt sceCtrlPeekBufferPositive_patched(SceInt port, SceCtrlData *ctrl, SceInt count) 
+{
+	return HandleControls(port, hook[1], ctrl, count);
+}   
+
+static SceInt sceCtrlPeekBufferPositive2_patched(SceInt port, SceCtrlData *ctrl, SceInt count) 
+{
+	return HandleControls(port, hook[2], ctrl, count);
+}   
+
+static SceInt sceCtrlReadBufferPositive_patched(SceInt port, SceCtrlData *ctrl, SceInt count) 
+{
+    return HandleControls(port, hook[3], ctrl, count);
+}   
+
+static SceInt sceCtrlReadBufferPositive2_patched(SceInt port, SceCtrlData *ctrl, SceInt count) 
+{
+    return HandleControls(port, hook[4], ctrl, count);
+} 
+
+static SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t hook, SceInt port, SceInt freq)
 {
 	if (c_clock == -1)
-		return TAI_CONTINUE(SceInt, ref_hook, freq);
+		return TAI_CONTINUE(SceInt, hook, freq);
 	else
-		return TAI_CONTINUE(SceInt, ref_hook, profiles[c_clock][port]);
+		return TAI_CONTINUE(SceInt, hook, profiles[c_clock][port]);
 	
 	if (g_clock == -1)
-		return TAI_CONTINUE(SceInt, ref_hook, freq);
+		return TAI_CONTINUE(SceInt, hook, freq);
 	else
-		return TAI_CONTINUE(SceInt, ref_hook, profiles[g_clock][port]);
+		return TAI_CONTINUE(SceInt, hook, profiles[g_clock][port]);
 }
 
-static SceInt power_patched1(SceInt freq) 
+static SceInt scePowerGetArmClockFrequency_patched(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(ref_hook[5], 0, freq);
+    return scePowerSetClockFrequency_patched(hook[5], 0, freq);
 }
 
-static SceInt power_patched2(SceInt freq) 
+static SceInt scePowerSetBusClockFrequency_patched(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(ref_hook[6], 1, freq);
+    return scePowerSetClockFrequency_patched(hook[6], 1, freq);
 }
 
-static SceInt power_patched3(SceInt freq) 
+static SceInt scePowerSetGpuClockFrequency_patched(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(ref_hook[7], 2, freq);
+    return scePowerSetClockFrequency_patched(hook[7], 2, freq);
 }
 
-static SceInt power_patched4(SceInt freq) 
+static SceInt scePowerSetGpuXbarClockFrequency_patched(SceInt freq) 
 {
-    return scePowerSetClockFrequency_patched(ref_hook[8], 3, freq);
+    return scePowerSetClockFrequency_patched(hook[8], 3, freq);
 }
-
 
 int vsh_main_thread(SceSize args, void *argp)
 {
-	sceKernelDelayThread(10000000);
-
 	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
 	Config_LoadConfig();
 
@@ -85,12 +132,6 @@ int vsh_main_thread(SceSize args, void *argp)
 		SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 	}
 
-	while(run_thread)
-	{
-		Menu_HandleControls();
-		sceKernelDelayThread(100000);
-	}
-
 	return sceKernelExitDeleteThread(0);
 }
 
@@ -99,13 +140,17 @@ SceInt module_start(SceSize argc, const SceVoid *args)
 {
 	FS_RecursiveMakeDir("ux0:/data/vsh/titles");
 
-	g_hooks[0] = Utils_TaiHookFunctionImport(&ref_hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched); // sceDisplaySetFrameBuf
-	g_hooks[1] = Utils_TaiHookFunctionImport(&ref_hook[1], 0x1082DA7F, 0x74DB5AE5, power_patched1);                // scePowerGetArmClockFrequency
-	g_hooks[2] = Utils_TaiHookFunctionImport(&ref_hook[2], 0x1082DA7F, 0xB8D7B3FB, power_patched2);                // scePowerSetBusClockFrequency
-	g_hooks[3] = Utils_TaiHookFunctionImport(&ref_hook[3], 0x1082DA7F, 0x717DB06C, power_patched3);                // scePowerSetGpuClockFrequency
-	g_hooks[4] = Utils_TaiHookFunctionImport(&ref_hook[4], 0x1082DA7F, 0xA7739DBE, power_patched4);                // scePowerSetGpuXbarClockFrequency
+	tai_uid[0] = Utils_TaiHookFunctionImport(&hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched);
 
-	run_thread = SCE_TRUE;
+	tai_uid[1] = Utils_TaiHookFunctionImport(&hook[1], 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
+	tai_uid[2] = Utils_TaiHookFunctionImport(&hook[2], 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
+	tai_uid[3] = Utils_TaiHookFunctionImport(&hook[3], 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
+	tai_uid[4] = Utils_TaiHookFunctionImport(&hook[4], 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
+	tai_uid[5] = Utils_TaiHookFunctionImport(&hook[5], 0x1082DA7F, 0x74DB5AE5, scePowerGetArmClockFrequency_patched);
+	tai_uid[6] = Utils_TaiHookFunctionImport(&hook[6], 0x1082DA7F, 0xB8D7B3FB, scePowerSetBusClockFrequency_patched);
+	tai_uid[7] = Utils_TaiHookFunctionImport(&hook[7], 0x1082DA7F, 0x717DB06C, scePowerSetGpuClockFrequency_patched);
+	tai_uid[8] = Utils_TaiHookFunctionImport(&hook[8], 0x1082DA7F, 0xA7739DBE, scePowerSetGpuXbarClockFrequency_patched);
+
 	SceUID thid = 0;
 
 	if (R_SUCCEEDED(thid = sceKernelCreateThread("vsh_main_thread", (SceKernelThreadEntry)vsh_main_thread, 0x10000100, 0x10000, 0, 0, NULL)))
@@ -117,12 +162,11 @@ SceInt module_start(SceSize argc, const SceVoid *args)
 SceInt module_stop(SceSize argc, const SceVoid *args) 
 {
 	// free hooks that didn't fail
-	
-	for (int i = (HOOKS_NUM - 1); i >= 0; i--)
+	for (SceInt i = 0; i < HOOKS_NUM; i++)
 	{
-		if (R_SUCCEEDED(g_hooks[i])) 
-			taiHookRelease(g_hooks[i], ref_hook[i]);
+		if (R_SUCCEEDED(tai_uid[i])) 
+			taiHookRelease(tai_uid[i], hook[i]);
 	}
-	
+
 	return SCE_KERNEL_STOP_SUCCESS;
 }
