@@ -8,9 +8,9 @@
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
-SceUID  Utils_TaiHookFunctionImport(tai_hook_ref_t *p_hook, uint32_t import_func_nid, const void *hook_func)
+SceUID  Utils_TaiHookFunctionImport(tai_hook_ref_t *p_hook, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func)
 {
-	return taiHookFunctionImport(p_hook, TAI_MAIN_MODULE, TAI_ANY_LIBRARY, import_func_nid, hook_func);
+	return taiHookFunctionImport(p_hook, TAI_MAIN_MODULE, import_library_nid, import_func_nid, hook_func);
 }
 
 SceInt Utils_LaunchAppByUriExit(char *titleid) 
@@ -50,40 +50,19 @@ SceVoid *Utils_SceMalloc(SceSize size)
 	if (!size)
 		return NULL;
 
-	SceSize inner_size = size + sizeof(SceUID) + sizeof(SceSize);
-	SceUID block = sceKernelAllocMemBlock("vsh", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(inner_size, PAGE_SIZE), NULL);
+	void *ptr = NULL;
+	SceUID block = 0;
 	
-	if (block <= 0)
-		return NULL;
-
-	SceVoid *base = NULL;
-	sceKernelGetMemBlockBase(block, &base);
+	if (R_SUCCEEDED(block = sceKernelAllocMemBlock("vsh", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(size, 4 * 1024), NULL)))
+		sceKernelGetMemBlockBase(block, &ptr);
 	
-	if (!base)
-	{
-		sceKernelFreeMemBlock(block);
-		return NULL;
-	}
-
-	*(SceSize *)base = block;
-	*(SceSize *)((SceByte *)base + sizeof(SceUID)) = size;
-
-	SceVoid *user_base = (SceVoid *)((SceByte *)base + sizeof(SceUID) + sizeof(SceSize));
-
-	return user_base;
+	return ptr;
 }
 
 SceVoid Utils_SceFree(SceVoid *mem)
 {
-	if (!mem)
-		return;
-
-	SceByte *inner_mem = (SceByte *)mem - sizeof(SceUID) - sizeof(SceSize);
 	SceUID block = 0;
-	block = *(SceSize *)inner_mem;
 	
-	if (block <= 0)
-		return;
-	
-	sceKernelFreeMemBlock(block);
+	if (R_SUCCEEDED(block = sceKernelFindMemBlockByAddr(mem, 1)))
+		sceKernelFreeMemBlock(block);
 }
