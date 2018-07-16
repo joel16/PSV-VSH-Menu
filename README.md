@@ -13,21 +13,17 @@ Features
 Installation
 --------------------------------------------------------------------------------
 
-Put "vsh.suprx" in "tai" folder in the root of your Vita memory card.
-
-Edit config.txt in that directory to load plugin for title of your choice by adding new lines like below:
-
-For version 2.0 and above you'll need a slightly modified (lighter) version of kuio.skprx (included in the releases tab).
+1) Put ```vsh.suprx``` and ```vsh.skprx``` in "tai" folder in the root of your Vita memory card.
+2) Edit config.txt in that directory and add the lines below:
 
 ```text
 *KERNEL
-ux0:tai/kuio.skprx
-
-*ALL
-ux0:tai/vsh.suprx
+ux0:tai/vsh.skprx
 ```
+3) Save config.txt.
+4) Go to settings->Henkaku Settings->Reload tai cache and then reboot device.
 
-Then use **L + R + START** to open the VSH menu.
+Then use **L + R + START** to open the VSH menu on a game.
 
 Credits
 --------------------------------------------------------------------------------
