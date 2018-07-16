@@ -21,10 +21,10 @@ For version 2.0 and above you'll need a slightly modified (lighter) version of k
 
 ```text
 *KERNEL
-ux0:tai/kuio.skprx
+ur0:tai/kuio.skprx
 
 *ALL
-ux0:tai/vsh.suprx
+ur0:tai/vsh.suprx
 ```
 
 Then use **L + R + START** to open the VSH menu.
