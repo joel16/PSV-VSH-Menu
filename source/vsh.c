@@ -17,23 +17,44 @@ static tai_hook_ref_t hook[HOOKS_NUM];
 
 SceInt showVSH = 0;
 
-static SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
+SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
 {
 	if (hook[0] == 0)
 		return -1;
 	
+	drawSetFrameBuf(pParam);
+
+	if ((batteryDisplay) && (showVSH == 0))
+	{
+		if (batteryPercent)
+			Power_DisplayBatteryPercentage();
+		if (batteryLifeTime)
+			Power_DisplayBatteryLifetime();
+		if (batteryTemp)
+			Power_DisplayBatteryTemp();
+	}
+
 	if (showVSH != 0)
 	{
-		drawSetFrameBuf(pParam);
+		if (!(!batteryDisplay))
+		{
+			if (batteryPercent)
+				Power_DisplayBatteryPercentage();
+			if (batteryLifeTime)
+				Power_DisplayBatteryLifetime();
+			if (batteryTemp)
+				Power_DisplayBatteryTemp();
+		}
+		
 		Menu_Display(SCE_FALSE);
 	}
-	
-    return TAI_CONTINUE(SceInt, hook[0], pParam, sync);
+
+	return TAI_CONTINUE(SceInt, hook[0], pParam, sync);
 }
 
 static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, int count)
 {
-	int ret = 0;
+	SceInt ret = 0;
 
 	if (hook == 0)
 		ret = 1;
@@ -43,8 +64,34 @@ static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, i
 	
 		if (showVSH == 0)
 		{
-			if ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
+			if (((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START)) || 
+				((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START)))
+			{	
+				sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
+				FS_RecursiveMakeDir("ur0:/data/vsh/titles");
+				Config_LoadConfig();
+
+				if (c_clock == -1)
+				{
+					profile_game[0] = scePowerGetArmClockFrequency();
+					profile_game[1] = scePowerGetBusClockFrequency();
+					c_clock = 0;
+				}
+				
+				if (g_clock == -1)
+				{
+					profile_game[2] = scePowerGetGpuClockFrequency();
+					profile_game[3] = scePowerGetGpuXbarClockFrequency();
+					g_clock = 0;
+				}
+
+				scePowerSetArmClockFrequency(profiles[c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[c_clock][1]);
+				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+				
 				showVSH = VSH_MAIN_MENU;
+			}
 		}
 		else if (showVSH != 0)
 		{
@@ -113,35 +160,10 @@ static SceInt scePowerSetGpuXbarClockFrequency_patched(SceInt freq)
     return scePowerSetClockFrequency_patched(hook[8], 3, freq);
 }
 
-int vsh_main_thread(SceSize args, void *argp)
-{
-	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
-	Config_LoadConfig();
-
-	int button = 0;
-	sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, &button);
-
-	if (button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE)
-	{
-		SCE_CTRL_ENTER = SCE_CTRL_CIRCLE;
-		SCE_CTRL_CANCEL = SCE_CTRL_CROSS;
-	}
-	else
-	{
-		SCE_CTRL_ENTER = SCE_CTRL_CROSS;
-		SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
-	}
-
-	return sceKernelExitDeleteThread(0);
-}
-
 SceVoid _start() __attribute__ ((weak, alias ("module_start")));
 SceInt module_start(SceSize argc, const SceVoid *args) 
 {
-	FS_RecursiveMakeDir("ux0:/data/vsh/titles");
-
 	tai_uid[0] = Utils_TaiHookFunctionImport(&hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched);
-
 	tai_uid[1] = Utils_TaiHookFunctionImport(&hook[1], 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	tai_uid[2] = Utils_TaiHookFunctionImport(&hook[2], 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
 	tai_uid[3] = Utils_TaiHookFunctionImport(&hook[3], 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
@@ -150,12 +172,7 @@ SceInt module_start(SceSize argc, const SceVoid *args)
 	tai_uid[6] = Utils_TaiHookFunctionImport(&hook[6], 0x1082DA7F, 0xB8D7B3FB, scePowerSetBusClockFrequency_patched);
 	tai_uid[7] = Utils_TaiHookFunctionImport(&hook[7], 0x1082DA7F, 0x717DB06C, scePowerSetGpuClockFrequency_patched);
 	tai_uid[8] = Utils_TaiHookFunctionImport(&hook[8], 0x1082DA7F, 0xA7739DBE, scePowerSetGpuXbarClockFrequency_patched);
-
-	SceUID thid = 0;
-
-	if (R_SUCCEEDED(thid = sceKernelCreateThread("vsh_main_thread", (SceKernelThreadEntry)vsh_main_thread, 0x10000100, 0x10000, 0, 0, NULL)))
-		sceKernelStartThread(thid, 0, NULL);
-
+	
 	return SCE_KERNEL_START_SUCCESS;
 }
 

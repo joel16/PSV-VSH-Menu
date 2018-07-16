@@ -211,25 +211,6 @@ SceVoid Menu_Display(SceBool vertical_blank)
 {
 	if (vertical_blank)
 		drawInit();
-
-	if (batteryDisplay)
-	{
-		if (batteryPercent)
-			Power_DisplayBatteryPercentage();
-		if (batteryLifeTime)
-			Power_DisplayBatteryLifetime();
-		if (batteryTemp)
-			Power_DisplayBatteryTemp();
-	}
-	else if ((!batteryDisplay) && (showVSH != 0))
-	{
-		if (batteryPercent)
-			Power_DisplayBatteryPercentage();
-		if (batteryLifeTime)
-			Power_DisplayBatteryLifetime();
-		if (batteryTemp)
-			Power_DisplayBatteryTemp();
-	}
 	
 	if (showVSH == VSH_MAIN_MENU)
 		Menu_DisplayMainMenu();
@@ -317,25 +298,25 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Config_LoadConfig();
 			}
 		}
-		else if ((selection == 3) && (pad & SCE_CTRL_ENTER))
+		else if ((selection == 3) && (pad & SCE_CTRL_CROSS))
 		{
 			selection = 0;
 			showVSH = VSH_BATTERY_MENU;
 		}
-		else if ((selection == 4) && (pad & SCE_CTRL_ENTER))
+		else if ((selection == 4) && (pad & SCE_CTRL_CROSS))
 		{
 			selection = 0;
 			showVSH = VSH_PROGRAM_MENU;
 		}
-		else if ((selection == 5) && (pad & SCE_CTRL_ENTER)) 
+		else if ((selection == 5) && (pad & SCE_CTRL_CROSS)) 
 			scePowerRequestStandby();
-		else if ((selection == 6) && (pad & SCE_CTRL_ENTER)) 
+		else if ((selection == 6) && (pad & SCE_CTRL_CROSS)) 
 			scePowerRequestSuspend();
-		else if ((selection == 7) && (pad & SCE_CTRL_ENTER)) 
+		else if ((selection == 7) && (pad & SCE_CTRL_CROSS)) 
 			scePowerRequestColdReset();
-		else if ((selection == 8) && (pad & SCE_CTRL_ENTER))
+		else if ((selection == 8) && (pad & SCE_CTRL_CROSS))
 			Utils_RestartVSH();
-		else if (((selection == 9) && (pad & SCE_CTRL_ENTER)) || (pad & SCE_CTRL_CANCEL))
+		else if (((selection == 9) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
 			selection = 0;
 			showVSH = 0;
@@ -353,7 +334,7 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 		if (selection == -1)
 			selection = BATTERY_MAX_ITEMS;
 		
-		if (((selection == 0) && (pad & SCE_CTRL_ENTER)) || (pad & SCE_CTRL_CANCEL))
+		if (((selection == 0) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
 			selection = 0;
 			showVSH = VSH_MAIN_MENU;
@@ -397,7 +378,7 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 			
 		if (selection == 0)
 		{
-			if ((pad & SCE_CTRL_ENTER) || (pad & SCE_CTRL_CANCEL))
+			if ((pad & SCE_CTRL_CROSS) || (pad & SCE_CTRL_CIRCLE))
 			{
 				selection = 0;
 				showVSH = VSH_MAIN_MENU;
@@ -405,7 +386,7 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 		}
 		else
 		{
-			if (pad & SCE_CTRL_ENTER)
+			if (pad & SCE_CTRL_CROSS)
 			{
 				if (strlen(app_title[selection - 1]) != 0)
 					Utils_LaunchAppByUriExit(app_titleID[selection - 1]);

@@ -11,7 +11,7 @@ endif()
 project(vsh)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 	
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Werror -O3 -std=gnu99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
@@ -37,20 +37,14 @@ add_executable(${PROJECT_NAME}.elf
 	source/utils.c
 )
 
-get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
-
 target_link_libraries(${PROJECT_NAME}.elf
-	${PARENT_DIR}/kernel/vsh-stubs/libvsh_stub_weak.a
 	taihen_stub
 	SceAppMgr_stub_weak
-	SceAppUtil_stub_weak
-	SceCtrl_stub_weak
 	SceDisplay_stub_weak
-	SceIofilemgr_stub_weak
 	SceLibKernel_stub_weak
-	SceKernelThreadMgr_stub_weak
 	ScePower_stub_weak
 	SceSysmem_stub_weak
+	kuio_stub_weak
 	k
 	gcc
 )

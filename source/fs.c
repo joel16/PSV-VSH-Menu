@@ -3,13 +3,16 @@
 #include "fs.h"
 #include "utils.h"
 
+#include <kuio.h>
+
 SceBool FS_FileExists(const char *path)
 {
 	SceUID file = 0;
-	
-	if (R_SUCCEEDED(file = sceIoOpen(path, SCE_O_RDONLY, 0777)))
+	kuIoOpen(path, SCE_O_RDONLY, &file);
+
+	if (R_SUCCEEDED(file))
 	{
-		sceIoClose(file);
+		kuIoClose(file);
 		return SCE_TRUE;
 	}
 	
@@ -19,11 +22,12 @@ SceBool FS_FileExists(const char *path)
 SceInt FS_ReadFile(char *path, SceVoid *buf, SceInt size)
 {
 	SceUID file = 0;
+	kuIoOpen(path, SCE_O_RDONLY, &file);
 
-	if (R_SUCCEEDED(file = sceIoOpen(path, SCE_O_RDONLY, 0)))
+	if (R_SUCCEEDED(file))
 	{
-		SceInt read = sceIoRead(file, buf, size);
-		sceIoClose(file);
+		SceInt read = kuIoRead(file, buf, size);
+		kuIoClose(file);
 		return read;
 	}
 	
@@ -33,11 +37,12 @@ SceInt FS_ReadFile(char *path, SceVoid *buf, SceInt size)
 SceInt FS_WriteFile(char *path, SceVoid *buf, SceInt size)
 {	
 	SceUID file = 0;
+	kuIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, &file);
 	
-	if (R_SUCCEEDED(file = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777)))
+	if (R_SUCCEEDED(file))
 	{
-		SceInt written = sceIoWrite(file, buf, size);
-		sceIoClose(file);
+		SceInt written = kuIoWrite(file, buf, size);
+		kuIoClose(file);
 		return written;
 	}
 		
@@ -48,7 +53,7 @@ SceInt FS_MakeDir(const char *path)
 {
 	SceInt ret = 0;
 
-	if (R_FAILED(ret = sceIoMkdir(path, 0777)))
+	if (R_FAILED(ret = kuIoMkdir(path)))
 		return ret;
 
 	return 0;
