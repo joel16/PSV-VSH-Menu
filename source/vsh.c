@@ -12,10 +12,16 @@
 
 #define HOOKS_NUM 9
 
+#define BUTTON_COMBO_1 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
+#define BUTTON_COMBO_2 ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
+#define BUTTON_COMBO_3 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_SELECT))
+#define BUTTON_COMBO_4 ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_SELECT))
+
 static SceUID tai_uid[HOOKS_NUM];
 static tai_hook_ref_t hook[HOOKS_NUM];
 
 SceInt showVSH = 0;
+
 
 SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
 {
@@ -64,13 +70,8 @@ static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, i
 	
 		if (showVSH == 0)
 		{
-			if (((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START)) || 
-				((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START)))
+			if (BUTTON_COMBO_1 || BUTTON_COMBO_2 || BUTTON_COMBO_3 || BUTTON_COMBO_4)
 			{	
-				sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
-				FS_RecursiveMakeDir("ur0:/data/vsh/titles");
-				Config_LoadConfig();
-
 				if (c_clock == -1)
 				{
 					profile_game[0] = scePowerGetArmClockFrequency();
@@ -163,6 +164,10 @@ static SceInt scePowerSetGpuXbarClockFrequency_patched(SceInt freq)
 SceVoid _start() __attribute__ ((weak, alias ("module_start")));
 SceInt module_start(SceSize argc, const SceVoid *args) 
 {
+	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
+	FS_RecursiveMakeDir("ur0:/data/vsh/titles");
+	Config_LoadConfig();
+
 	tai_uid[0] = Utils_TaiHookFunctionImport(&hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched);
 	tai_uid[1] = Utils_TaiHookFunctionImport(&hook[1], 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	tai_uid[2] = Utils_TaiHookFunctionImport(&hook[2], 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);

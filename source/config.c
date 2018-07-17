@@ -45,7 +45,7 @@ SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, Sc
 	return 0;
 }
 
-SceInt Config_SaveClockConfig(int cpuClock, int gpuClock)
+SceInt Config_SaveClockConfig(SceInt cpuClock, SceInt gpuClock)
 {
 	SceInt ret = 0;
 	
@@ -125,10 +125,10 @@ SceInt Config_LoadConfig(SceVoid)
 	if (!(FS_FileExists(menu_config_path)))
 	{
 		// set these to the following by default:
-		batteryPercent = 0;
-		batteryLifeTime = 0;
-		batteryTemp = 0;
-		batteryDisplay = 0;
+		batteryPercent = SCE_FALSE;
+		batteryLifeTime = SCE_FALSE;
+		batteryTemp = SCE_FALSE;
+		batteryDisplay = SCE_FALSE;
 		colour = 0;
 		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
 	}
@@ -187,9 +187,9 @@ SceInt Config_LoadConfig(SceVoid)
 	return 0;
 }
 
-int Config_GetVSHColour()
+SceInt Config_GetVSHColour()
 {
-	int col = 0;
+	SceInt col = 0;
 	
 	switch (colour)
 	{
