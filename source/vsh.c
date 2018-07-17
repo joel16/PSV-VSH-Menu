@@ -42,15 +42,12 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sy
 
 	if (showVSH != 0)
 	{
-		if (!(!batteryDisplay))
-		{
-			if (batteryPercent)
-				Power_DisplayBatteryPercentage();
-			if (batteryLifeTime)
-				Power_DisplayBatteryLifetime();
-			if (batteryTemp)
-				Power_DisplayBatteryTemp();
-		}
+		if (batteryPercent)
+			Power_DisplayBatteryPercentage();
+		if (batteryLifeTime)
+			Power_DisplayBatteryLifetime();
+		if (batteryTemp)
+			Power_DisplayBatteryTemp();
 		
 		Menu_Display(SCE_FALSE);
 	}
