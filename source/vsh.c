@@ -85,11 +85,6 @@ static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, i
 					profile_game[3] = scePowerGetGpuXbarClockFrequency();
 					g_clock = 0;
 				}
-
-				scePowerSetArmClockFrequency(profiles[c_clock][0]);
-				scePowerSetBusClockFrequency(profiles[c_clock][1]);
-				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
 				
 				showVSH = VSH_MAIN_MENU;
 			}
@@ -167,6 +162,11 @@ SceInt module_start(SceSize argc, const SceVoid *args)
 	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
 	FS_RecursiveMakeDir("ur0:/data/vsh/titles");
 	Config_LoadConfig();
+
+	scePowerSetArmClockFrequency(profiles[c_clock][0]);
+	scePowerSetBusClockFrequency(profiles[c_clock][1]);
+	scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+	scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
 
 	tai_uid[0] = Utils_TaiHookFunctionImport(&hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched);
 	tai_uid[1] = Utils_TaiHookFunctionImport(&hook[1], 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
