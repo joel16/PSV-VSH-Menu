@@ -23,6 +23,7 @@ Edit config.txt in that directory to load plugin for title of your choice by add
 *KERNEL
 ur0:tai/kuio.skprx
 
+*!PSPEMUCFW
 *ALL
 ur0:tai/vsh.suprx
 ```
