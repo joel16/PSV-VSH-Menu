@@ -51,9 +51,10 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 		}
 	}
 
-	drawSetColour(WHITE, Config_GetVSHColour());
+	// For debugging clock configs
+	/*drawSetColour(WHITE, Config_GetVSHColour());
 	drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
-	drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
+	drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());*/
 
 	if ((batteryDisplay) && (showVSH == 0))
 	{
