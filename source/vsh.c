@@ -12,6 +12,9 @@
 
 #define HOOKS_NUM 9
 
+#define CLOCK_SET_DELAY_INIT      5000000 // 5 seconds
+#define CLOCK_SET_DELAY_INTERVAL 30000000 // 30 seconds
+
 #define BUTTON_COMBO_1 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 #define BUTTON_COMBO_2 ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
 #define BUTTON_COMBO_3 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_SELECT))
@@ -21,14 +24,36 @@ static SceUID tai_uid[HOOKS_NUM];
 static tai_hook_ref_t hook[HOOKS_NUM];
 
 SceInt showVSH = 0;
+static SceBool isConfigSet = SCE_FALSE;
+static SceUInt64 timer = 0;
 
-
-SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceInt sync) 
+SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDisplaySetBufSync sync) 
 {
 	if (hook[0] == 0)
 		return -1;
 	
 	drawSetFrameBuf(pParam);
+
+	if (timer == 0)
+		timer = sceKernelGetProcessTimeWide();
+	else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? CLOCK_SET_DELAY_INTERVAL : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
+	{
+		// if current clock state don't match the ones in config -> re set the desired clock config.
+		if ((scePowerGetArmClockFrequency() != profiles[c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[c_clock][1]) || 
+			(scePowerGetGpuClockFrequency() != profiles[g_clock][2]) || (scePowerGetGpuXbarClockFrequency() != profiles[g_clock][3]))
+		{
+			scePowerSetArmClockFrequency(profiles[c_clock][0]);
+			scePowerSetBusClockFrequency(profiles[c_clock][1]);
+			scePowerSetGpuClockFrequency(profiles[g_clock][2]);
+			scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+			timer = 0;
+			isConfigSet = SCE_TRUE; // Once this is true check if the clock states have changed in 30 second intervals
+		}
+	}
+
+	drawSetColour(WHITE, Config_GetVSHColour());
+	drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
+	drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 
 	if ((batteryDisplay) && (showVSH == 0))
 	{
@@ -159,11 +184,6 @@ SceInt module_start(SceSize argc, const SceVoid *args)
 	sceAppMgrAppParamGetString(0, 12, titleID , 256); // Get titleID of current running application.
 	FS_RecursiveMakeDir("ur0:/data/vsh/titles");
 	Config_LoadConfig();
-
-	scePowerSetArmClockFrequency(profiles[c_clock][0]);
-	scePowerSetBusClockFrequency(profiles[c_clock][1]);
-	scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-	scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
 
 	tai_uid[0] = Utils_TaiHookFunctionImport(&hook[0], 0x4FAACD11, 0x7A410B64, sceDisplaySetFrameBuf_patched);
 	tai_uid[1] = Utils_TaiHookFunctionImport(&hook[1], 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);

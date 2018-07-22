@@ -12,11 +12,11 @@ static SceInt app_list = 0;
 SceInt selection = 0;
 
 SceInt profile_max_battery[] = {111, 111, 111, 111};
-SceInt profile_default[] = {266, 166, 166, 111};
+SceInt profile_balance[] = {266, 166, 166, 111};
+SceInt profile_game[] = {333, 222, 111, 111};
 SceInt profile_max_performance[] = {444, 222, 222, 166};
-SceInt profile_game[] = {444, 222, 222, 166};
 
-SceInt *profiles[4] = {profile_max_battery, profile_default, profile_game, profile_max_performance};
+SceInt *profiles[4] = {profile_max_battery, profile_balance, profile_game, profile_max_performance};
 
 static char *colourStr[] = 
 {
