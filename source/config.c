@@ -10,7 +10,9 @@ const char *menuConfig =
 	"display_battery_lifetime = %d\n"
 	"display_battery_temp = %d\n"
 	"display_battery_data = %d\n"
-	"bar_colour = %d\n";
+	"bar_colour = %d\n"
+	"display_fps = %d\n"
+	"display_fps_data = %d\n";
 
 const char *clockConfig =
 	"CPU_clock = %d\n"
@@ -23,15 +25,15 @@ const char *launcherConfig =
 	"[3] title: %s titleID: %s\n"
 	"[4] title: %s titleID: %s\n";
 
-SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, SceBool batteryDisplay, SceInt colour)
+SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, SceBool batteryDisplay, SceInt colour, SceBool fps, SceBool fpsDisplay)
 {
 	SceInt ret = 0;
 	
 	char *menu_config_path = (char *)Utils_SceMalloc(25);
 	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
 	
-	char *buf = (char *)Utils_SceMalloc(128);
-	SceInt len = snprintf(buf, 128, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+	char *buf = (char *)Utils_SceMalloc(256);
+	SceInt len = snprintf(buf, 256, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
 	
 	if (R_FAILED(ret = FS_WriteFile(menu_config_path, buf, len)))
 	{
@@ -130,14 +132,16 @@ SceInt Config_LoadConfig(SceVoid)
 		batteryTemp = SCE_FALSE;
 		batteryDisplay = SCE_FALSE;
 		colour = 0;
-		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour);
+		fps = SCE_FALSE;
+		fpsDisplay = SCE_FALSE;
+		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
 	}
 	
 	if (!(FS_FileExists(launcher_config_path)))	
 		Config_SaveLauncherConfig();
 	
 	char *buf1 = (char *)Utils_SceMalloc(64);
-	char *buf2 = (char *)Utils_SceMalloc(128);
+	char *buf2 = (char *)Utils_SceMalloc(256);
 	char *buf3 = (char *)Utils_SceMalloc(256);
 	
 	if (R_FAILED(ret = FS_ReadFile(game_config_path, buf1, 64)))
@@ -151,7 +155,7 @@ SceInt Config_LoadConfig(SceVoid)
 		return ret;
 	}
 	
-	if (R_FAILED(ret = FS_ReadFile(menu_config_path, buf2, 128)))
+	if (R_FAILED(ret = FS_ReadFile(menu_config_path, buf2, 256)))
 	{
 		Utils_SceFree(buf3);
 		Utils_SceFree(buf2);
@@ -174,7 +178,7 @@ SceInt Config_LoadConfig(SceVoid)
 	}
 	
 	sscanf(buf1, clockConfig, &c_clock, &g_clock);
-	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &batteryDisplay, &colour);
+	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &batteryDisplay, &colour, &fps, &fpsDisplay);
 	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	

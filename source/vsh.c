@@ -14,6 +14,7 @@
 
 #define CLOCK_SET_DELAY_INIT      5000000 // 5 seconds
 #define CLOCK_SET_DELAY_INTERVAL 30000000 // 30 seconds
+#define FPS_TIMER_TICK            1000000
 
 #define BUTTON_COMBO_1 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 #define BUTTON_COMBO_2 ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
@@ -25,7 +26,32 @@ static tai_hook_ref_t hook[HOOKS_NUM];
 
 SceInt showVSH = 0;
 static SceBool isConfigSet = SCE_FALSE;
-static SceUInt64 timer = 0;
+static SceUInt64 timer = 0, tick = 0, t_tick = 0;
+
+static SceInt frames = 0, fps_data = 0;
+
+// This function is from Framecounter by Rinnegatamante.
+static SceVoid DisplayFPS(SceVoid)
+{
+	t_tick = sceKernelGetProcessTimeWide();
+			
+	if (tick == 0)
+		tick = t_tick;
+	else
+	{
+		if ((t_tick - tick) > FPS_TIMER_TICK)
+		{
+			fps_data = frames;
+			frames = 0;
+			tick = t_tick;
+		}
+
+		drawSetColour(WHITE, Config_GetVSHColour());
+		drawStringf(0, 528, "FPS: %d", fps_data);
+	}
+	
+	frames++;
+}
 
 SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDisplaySetBufSync sync) 
 {
@@ -66,6 +92,9 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 			Power_DisplayBatteryTemp();
 	}
 
+	if ((fpsDisplay && showVSH == 0))
+		DisplayFPS();
+
 	if (showVSH != 0)
 	{
 		if (batteryPercent)
@@ -74,6 +103,8 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 			Power_DisplayBatteryLifetime();
 		if (batteryTemp)
 			Power_DisplayBatteryTemp();
+		if (fps)
+			DisplayFPS();
 		
 		Menu_Display(SCE_FALSE);
 	}

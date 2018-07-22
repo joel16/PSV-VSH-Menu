@@ -1,12 +1,13 @@
 #ifndef PSV_VSH_MENUS_H
 #define PSV_VSH_MENUS_H
 
-#define VSH_MAIN_MENU      1
-#define VSH_BATTERY_MENU   2
-#define VSH_PROGRAM_MENU   3
+#define VSH_MAIN_MENU    1
+#define VSH_BATTERY_MENU 2
+#define VSH_FPS_MENU     3
+#define VSH_PROGRAM_MENU 4
 
 extern SceInt profile_max_battery[];
-extern SceInt profile_default[];
+extern SceInt profile_balance[];
 extern SceInt profile_max_performance[];
 extern SceInt profile_game[];
 extern SceInt *profiles[4];
