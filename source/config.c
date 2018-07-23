@@ -166,7 +166,7 @@ SceInt Config_LoadConfig(SceVoid)
 
 	sscanf(buf, clockConfig, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
 	memset(config_path, 0, 39);
-	memset(config_path, 0, 256);
+	memset(buf, 0, 256);
 
 	// Menu config
 	snprintf(config_path, 25, "ur0:/data/vsh/config.cfg");
@@ -196,7 +196,7 @@ SceInt Config_LoadConfig(SceVoid)
 	sscanf(buf, menuConfig, &Menu_Config.battery_percent, &Menu_Config.battery_lifetime, &Menu_Config.battery_temp, &Menu_Config.battery_keep_display, 
 		&Menu_Config.colour, &Menu_Config.fps_display, &Menu_Config.fps_keep_display, &Menu_Config.clock_display, &Menu_Config.clock_keep_display);
 	memset(config_path, 0, 39);
-	memset(config_path, 0, 256);
+	memset(buf, 0, 256);
 
 	// Custom colour config
 	snprintf(config_path, 39, "ur0:/data/vsh/custom_colour_config.cfg");
@@ -221,7 +221,7 @@ SceInt Config_LoadConfig(SceVoid)
 	sscanf(buf, customColourConfig, &Custom_Colour.title_bg_col, &Custom_Colour.bg_col, &Custom_Colour.cursor_col, &Custom_Colour.title_text_col,
 		&Custom_Colour.text_col);
 	memset(config_path, 0, 39);
-	memset(config_path, 0, 256);
+	memset(buf, 0, 256);
 
 	// Launcher config
 	snprintf(config_path, 27, "ur0:/data/vsh/launcher.cfg");
@@ -238,7 +238,7 @@ SceInt Config_LoadConfig(SceVoid)
 
 	sscanf(buf, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
-	
+
 	Utils_SceFree(config_path);
 	Utils_SceFree(buf);
 	return 0;

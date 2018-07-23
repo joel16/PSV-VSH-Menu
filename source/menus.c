@@ -234,7 +234,7 @@ static SceVoid Menu_DisplayProgramMenu(SceVoid)
 	
 	drawStringCenter(130, "<- BACK");
 	
-	for (SceInt i = 0; i < 10; i++)
+	for (SceInt i = 0; i < 5; i++)
 	{
 		if (strlen(app_title[i]) != 0)
 		{
@@ -555,10 +555,8 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 		else if (pad & SCE_CTRL_UP)
 			selection--;
 			
-		if (selection == (app_list + 1))
-			selection = 0;
-		if (selection == -1)
-			selection = app_list;
+		Utils_SetMax(&selection, 0, app_list);
+		Utils_SetMin(&selection, app_list, 0);
 			
 		if (selection == 0)
 		{
