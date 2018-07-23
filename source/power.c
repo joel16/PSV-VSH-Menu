@@ -33,7 +33,7 @@ SceInt Power_DisplayBatteryLifetime(SceVoid)
 	return 0;
 }
 
-SceInt Power_DisplayBatteryTemp(SceVoid)
+SceInt Power_DisplayBatteryTemp(SceInt y)
 {
 	SceInt ret = 0;
 	
@@ -41,7 +41,7 @@ SceInt Power_DisplayBatteryTemp(SceVoid)
 		return ret;
 	
 	drawSetColour(WHITE, Config_GetVSHColour());
-	drawStringf(0, 0, "Temp: %02i C", ret / 100);
+	drawStringf(0, y, "Temp: %02i C", ret / 100);
 	
 	return 0;
 }

@@ -5,6 +5,6 @@
 
 SceInt Power_DisplayBatteryPercentage(SceVoid);
 SceInt Power_DisplayBatteryLifetime(SceVoid);
-SceInt Power_DisplayBatteryTemp(SceVoid);
+SceInt Power_DisplayBatteryTemp(SceInt y);
 
 #endif

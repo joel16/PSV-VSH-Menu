@@ -12,9 +12,8 @@
 
 #define HOOKS_NUM 9
 
-#define CLOCK_SET_DELAY_INIT      5000000 // 5 seconds
-#define CLOCK_SET_DELAY_INTERVAL 30000000 // 30 seconds
-#define FPS_TIMER_TICK            1000000
+#define CLOCK_SET_DELAY_INIT 5000000 // 5 seconds
+#define TIMER_SECOND         1000000 // 1 second
 
 #define BUTTON_COMBO_1 ((ctrl->buttons & SCE_CTRL_LTRIGGER) && (ctrl->buttons & SCE_CTRL_RTRIGGER) && (ctrl->buttons & SCE_CTRL_START))
 #define BUTTON_COMBO_2 ((ctrl->buttons & SCE_CTRL_L1) && (ctrl->buttons & SCE_CTRL_R1) && (ctrl->buttons & SCE_CTRL_START))
@@ -39,7 +38,7 @@ static SceVoid DisplayFPS(SceVoid)
 		tick = t_tick;
 	else
 	{
-		if ((t_tick - tick) > FPS_TIMER_TICK)
+		if ((t_tick - tick) > TIMER_SECOND)
 		{
 			fps_data = frames;
 			frames = 0;
@@ -62,51 +61,67 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 
 	if (timer == 0)
 		timer = sceKernelGetProcessTimeWide();
-	else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? CLOCK_SET_DELAY_INTERVAL : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
+	else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? Config_GetInterval() : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
 	{
 		// if current clock state don't match the ones in config -> re set the desired clock config.
-		if ((scePowerGetArmClockFrequency() != profiles[c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[c_clock][1]) || 
-			(scePowerGetGpuClockFrequency() != profiles[g_clock][2]) || (scePowerGetGpuXbarClockFrequency() != profiles[g_clock][3]))
+		if ((scePowerGetArmClockFrequency() != profiles[Clock_Config.c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[Clock_Config.c_clock][1]) || 
+			(scePowerGetGpuClockFrequency() != profiles[Clock_Config.g_clock][2]) || (scePowerGetGpuXbarClockFrequency() != profiles[Clock_Config.g_clock][3]))
 		{
-			scePowerSetArmClockFrequency(profiles[c_clock][0]);
-			scePowerSetBusClockFrequency(profiles[c_clock][1]);
-			scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-			scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
+			scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
+			scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+			scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
+			scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
 			timer = 0;
 			isConfigSet = SCE_TRUE; // Once this is true check if the clock states have changed in 30 second intervals
 		}
 	}
 
-	// For debugging clock configs
-	/*drawSetColour(WHITE, Config_GetVSHColour());
-	drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
-	drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());*/
-
-	if ((batteryDisplay) && (showVSH == 0))
+	if ((Menu_Config.battery_keep_display) && (showVSH == 0))
 	{
-		if (batteryPercent)
+		if (Menu_Config.battery_percent)
 			Power_DisplayBatteryPercentage();
-		if (batteryLifeTime)
+		if (Menu_Config.battery_lifetime)
 			Power_DisplayBatteryLifetime();
-		if (batteryTemp)
-			Power_DisplayBatteryTemp();
+		
+		if (Menu_Config.battery_temp && !Menu_Config.clock_display)
+			Power_DisplayBatteryTemp(0);
+		else if (Menu_Config.battery_temp && Menu_Config.clock_display)
+			Power_DisplayBatteryTemp(32);
 	}
 
-	if ((fpsDisplay && showVSH == 0))
+	if ((Menu_Config.clock_keep_display) && (showVSH == 0))
+	{
+		if (Menu_Config.clock_display)
+		{
+			drawSetColour(WHITE, Config_GetVSHColour());
+			drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
+			drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
+		}
+	}
+
+	if ((Menu_Config.fps_keep_display && showVSH == 0))
 		DisplayFPS();
 
 	if (showVSH != 0)
 	{
-		if (batteryPercent)
+		if (Menu_Config.battery_percent)
 			Power_DisplayBatteryPercentage();
-		if (batteryLifeTime)
+		if (Menu_Config.battery_lifetime)
 			Power_DisplayBatteryLifetime();
-		if (batteryTemp)
-			Power_DisplayBatteryTemp();
-		if (fps)
+		if (Menu_Config.battery_temp && !Menu_Config.clock_display)
+			Power_DisplayBatteryTemp(0);
+		else if (Menu_Config.battery_temp && Menu_Config.clock_display)
+			Power_DisplayBatteryTemp(32);
+		if (Menu_Config.clock_display)
+		{
+			drawSetColour(WHITE, Config_GetVSHColour());
+			drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
+			drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
+		}
+		if (Menu_Config.fps_display)
 			DisplayFPS();
 		
-		Menu_Display(SCE_FALSE);
+		Menu_Display();
 	}
 
 	return TAI_CONTINUE(SceInt, hook[0], pParam, sync);
@@ -126,18 +141,18 @@ static SceInt HandleControls(int port, tai_hook_ref_t hook, SceCtrlData *ctrl, i
 		{
 			if (BUTTON_COMBO_1 || BUTTON_COMBO_2 || BUTTON_COMBO_3 || BUTTON_COMBO_4)
 			{	
-				if (c_clock == -1)
+				if (Clock_Config.c_clock == -1)
 				{
 					profile_game[0] = scePowerGetArmClockFrequency();
 					profile_game[1] = scePowerGetBusClockFrequency();
-					c_clock = 0;
+					Clock_Config.c_clock = 0;
 				}
 				
-				if (g_clock == -1)
+				if (Clock_Config.g_clock == -1)
 				{
 					profile_game[2] = scePowerGetGpuClockFrequency();
 					profile_game[3] = scePowerGetGpuXbarClockFrequency();
-					g_clock = 0;
+					Clock_Config.g_clock = 0;
 				}
 				
 				showVSH = VSH_MAIN_MENU;
@@ -179,15 +194,15 @@ static SceInt sceCtrlReadBufferPositive2_patched(SceInt port, SceCtrlData *ctrl,
 
 static SceInt scePowerSetClockFrequency_patched(tai_hook_ref_t hook, SceInt port, SceInt freq)
 {
-	if (c_clock == -1)
+	if (Clock_Config.c_clock == -1)
 		return TAI_CONTINUE(SceInt, hook, freq);
 	else
-		return TAI_CONTINUE(SceInt, hook, profiles[c_clock][port]);
+		return TAI_CONTINUE(SceInt, hook, profiles[Clock_Config.c_clock][port]);
 	
-	if (g_clock == -1)
+	if (Clock_Config.g_clock == -1)
 		return TAI_CONTINUE(SceInt, hook, freq);
 	else
-		return TAI_CONTINUE(SceInt, hook, profiles[g_clock][port]);
+		return TAI_CONTINUE(SceInt, hook, profiles[Clock_Config.g_clock][port]);
 }
 
 static SceInt scePowerGetArmClockFrequency_patched(SceInt freq) 

@@ -12,11 +12,14 @@ const char *menuConfig =
 	"display_battery_data = %d\n"
 	"bar_colour = %d\n"
 	"display_fps = %d\n"
-	"display_fps_data = %d\n";
+	"display_fps_data = %d\n"
+	"display_clock = %d\n"
+	"display_clock_data = %d\n";
 
 const char *clockConfig =
 	"CPU_clock = %d\n"
-	"GPU_clock = %d\n";
+	"GPU_clock = %d\n"
+	"Refresh_interval = %d\n";
 	
 const char *launcherConfig =
 	"[0] title: %s titleID: %s\n"
@@ -25,7 +28,7 @@ const char *launcherConfig =
 	"[3] title: %s titleID: %s\n"
 	"[4] title: %s titleID: %s\n";
 
-SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, SceBool batteryTemp, SceBool batteryDisplay, SceInt colour, SceBool fps, SceBool fpsDisplay)
+SceInt Config_SaveMenuConfig(Menu_Config_t Menu_Config)
 {
 	SceInt ret = 0;
 	
@@ -33,7 +36,8 @@ SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, Sc
 	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
 	
 	char *buf = (char *)Utils_SceMalloc(256);
-	SceInt len = snprintf(buf, 256, menuConfig, batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+	SceInt len = snprintf(buf, 256, menuConfig, Menu_Config.battery_percent, Menu_Config.battery_lifetime, Menu_Config.battery_temp, 
+		Menu_Config.battery_keep_display, Menu_Config.colour, Menu_Config.fps_display, Menu_Config.fps_keep_display, Menu_Config.clock_display, Menu_Config.clock_keep_display);
 	
 	if (R_FAILED(ret = FS_WriteFile(menu_config_path, buf, len)))
 	{
@@ -47,15 +51,15 @@ SceInt Config_SaveMenuConfig(SceBool batteryPercent, SceBool batteryLifeTime, Sc
 	return 0;
 }
 
-SceInt Config_SaveClockConfig(SceInt cpuClock, SceInt gpuClock)
+SceInt Config_SaveClockConfig(Clock_Config_t Clock_Config)
 {
 	SceInt ret = 0;
 	
 	char *game_config_path = (char *)Utils_SceMalloc(35);
 	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
 	
-	char *buf = (char *)Utils_SceMalloc(64);
-	SceInt len = snprintf(buf, 64, clockConfig, cpuClock, gpuClock);
+	char *buf = (char *)Utils_SceMalloc(128);
+	SceInt len = snprintf(buf, 128, clockConfig, Clock_Config.c_clock, Clock_Config.g_clock, Clock_Config.refresh_interval);
 	
 	if (R_FAILED(ret = FS_WriteFile(game_config_path, buf, len)))
 	{
@@ -119,32 +123,35 @@ SceInt Config_LoadConfig(SceVoid)
 	
 	if (!(FS_FileExists(game_config_path)))
 	{
-		c_clock = 2; // Default clock
-		g_clock = 2; // Default clock
-		Config_SaveClockConfig(c_clock, g_clock);
+		Clock_Config.c_clock = 2; // Default clock
+		Clock_Config.g_clock = 2; // Default clock
+		Clock_Config.refresh_interval = 3; // Default refresh rate = 30 seconds
+		Config_SaveClockConfig(Clock_Config);
 	}
 	
 	if (!(FS_FileExists(menu_config_path)))
 	{
 		// set these to the following by default:
-		batteryPercent = SCE_FALSE;
-		batteryLifeTime = SCE_FALSE;
-		batteryTemp = SCE_FALSE;
-		batteryDisplay = SCE_FALSE;
-		colour = 0;
-		fps = SCE_FALSE;
-		fpsDisplay = SCE_FALSE;
-		Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+		Menu_Config.colour = 0;
+		Menu_Config.battery_percent = SCE_FALSE;
+		Menu_Config.battery_lifetime = SCE_FALSE;
+		Menu_Config.battery_temp = SCE_FALSE;
+		Menu_Config.battery_keep_display = SCE_FALSE;
+		Menu_Config.fps_display = SCE_FALSE;
+		Menu_Config.fps_keep_display = SCE_FALSE;
+		Menu_Config.clock_display = SCE_FALSE;
+		Menu_Config.clock_keep_display = SCE_FALSE;
+		Config_SaveMenuConfig(Menu_Config);
 	}
 	
 	if (!(FS_FileExists(launcher_config_path)))	
 		Config_SaveLauncherConfig();
 	
-	char *buf1 = (char *)Utils_SceMalloc(64);
+	char *buf1 = (char *)Utils_SceMalloc(128);
 	char *buf2 = (char *)Utils_SceMalloc(256);
 	char *buf3 = (char *)Utils_SceMalloc(256);
 	
-	if (R_FAILED(ret = FS_ReadFile(game_config_path, buf1, 64)))
+	if (R_FAILED(ret = FS_ReadFile(game_config_path, buf1, 128)))
 	{
 		Utils_SceFree(buf3);
 		Utils_SceFree(buf2);
@@ -177,8 +184,9 @@ SceInt Config_LoadConfig(SceVoid)
 		return ret;
 	}
 	
-	sscanf(buf1, clockConfig, &c_clock, &g_clock);
-	sscanf(buf2, menuConfig, &batteryPercent, &batteryLifeTime, &batteryTemp, &batteryDisplay, &colour, &fps, &fpsDisplay);
+	sscanf(buf1, clockConfig, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
+	sscanf(buf2, menuConfig, &Menu_Config.battery_percent, &Menu_Config.battery_lifetime, &Menu_Config.battery_temp, &Menu_Config.battery_keep_display, 
+		&Menu_Config.colour, &Menu_Config.fps_display, &Menu_Config.fps_keep_display, &Menu_Config.clock_display, &Menu_Config.clock_keep_display);
 	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	
@@ -191,11 +199,11 @@ SceInt Config_LoadConfig(SceVoid)
 	return 0;
 }
 
-SceInt Config_GetVSHColour()
+SceInt Config_GetVSHColour(SceVoid)
 {
 	SceInt col = 0;
 	
-	switch (colour)
+	switch (Menu_Config.colour)
 	{
 		case 0:
 			col = RGB_RED;
@@ -227,4 +235,33 @@ SceInt Config_GetVSHColour()
 	}
 	
 	return col;
+}
+
+SceUInt64 Config_GetInterval(SceVoid)
+{
+	SceUInt64 interval = 0;
+
+	switch(Clock_Config.refresh_interval)
+	{
+		case 0:
+			interval = 5000000;
+			break;
+		case 1:
+			interval = 10000000;
+			break;
+		case 2:
+			interval = 20000000;
+			break;
+		case 3:
+			interval = 30000000;
+			break;
+		case 4:
+			interval = 45000000;
+			break;
+		case 5:
+			interval = 60000000;
+			break;
+	}
+
+	return interval;
 }

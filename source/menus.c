@@ -4,9 +4,11 @@
 #include "power.h"
 #include "utils.h"
 
-#define MAIN_MAX_ITEMS     10
+#define MAIN_MAX_ITEMS     11
 #define BATTERY_MAX_ITEMS  4
 #define FPS_MAX_ITEMS      2
+#define ADVANCED_MAX_ITEMS 3
+#define REFRESH_MAX_ITEMS  5
 #define COLOUR_MAX_ITEMS   8
 
 static SceInt app_list = 0;
@@ -32,6 +34,11 @@ static char *colourStr[] =
 	"White"
 };
 
+static SceInt refresh_rates[] =
+{
+	5, 10, 20, 30, 45, 60
+};
+
 static SceVoid Menu_DisplayMainMenu(SceVoid)
 {
 	drawSetColour(WHITE, RGB_GREEN);
@@ -39,44 +46,45 @@ static SceVoid Menu_DisplayMainMenu(SceVoid)
 		
 	drawSetColour(WHITE, Config_GetVSHColour());
 		
-	if (c_clock == 2)
+	if (Clock_Config.c_clock == 2)
 		drawStringCenter(130, "CPU CLOCK default");
 	else 
 		drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
-	if (g_clock == 2)
+	if (Clock_Config.g_clock == 2)
 		drawStringCenter(146, "GPU CLOCK default");
 	else
 		drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		
-	drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[colour]);
+	drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[Menu_Config.colour]);
 	drawStringCenter(178, "BATTERY OPTIONS ->");
-	drawStringCenter(194, "FPS SETTINGS ->");
-	drawStringCenter(210, "LOAD PROGRAM ->");
-	drawStringCenter(226, "SHUTDOWN DEVICE");
-	drawStringCenter(242, "SUSPEND DEVICE");
-	drawStringCenter(258, "REBOOT DEVICE");
-	drawStringCenter(274, "RESTART VSH");
-	drawStringCenter(290, "EXIT");
+	drawStringCenter(194, "ADVANCED MENU ->");
+	drawStringCenter(210, "FPS SETTINGS ->");
+	drawStringCenter(226, "LOAD PROGRAM ->");
+	drawStringCenter(242, "SHUTDOWN DEVICE");
+	drawStringCenter(258, "SUSPEND DEVICE");
+	drawStringCenter(274, "REBOOT DEVICE");
+	drawStringCenter(290, "RESTART VSH");
+	drawStringCenter(306, "EXIT");
 		
 	switch(selection)
 	{
 		case 0:
 			drawSetColour(WHITE, SKYBLUE);
-			if (c_clock == 2)
+			if (Clock_Config.c_clock == 2)
 				drawStringCenter(130, "CPU CLOCK default");
 			else
 				drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 			break;
 		case 1:
 			drawSetColour(WHITE, SKYBLUE);
-			if (g_clock == 2)
+			if (Clock_Config.g_clock == 2)
 				drawStringCenter(146, "GPU CLOCK default");
 			else
 				drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 			break;
 		case 2:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[colour]);
+			drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[Menu_Config.colour]);
 			break;
 		case 3:
 			drawSetColour(WHITE, SKYBLUE);
@@ -84,31 +92,35 @@ static SceVoid Menu_DisplayMainMenu(SceVoid)
 			break;
 		case 4:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(194, "FPS SETTINGS ->");
+			drawStringCenter(194, "ADVANCED MENU ->");
 			break;
 		case 5:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(210, "LOAD PROGRAM ->");
+			drawStringCenter(210, "FPS SETTINGS ->");
 			break;
 		case 6:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(226, "SHUTDOWN DEVICE");
+			drawStringCenter(226, "LOAD PROGRAM ->");
 			break;
 		case 7:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(242, "SUSPEND DEVICE");
+			drawStringCenter(242, "SHUTDOWN DEVICE");
 			break;
 		case 8:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(258, "REBOOT DEVICE");
+			drawStringCenter(258, "SUSPEND DEVICE");
 			break;
 		case 9:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(274, "RESTART VSH");
+			drawStringCenter(274, "REBOOT DEVICE");
 			break;
 		case 10:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringCenter(290, "EXIT");
+			drawStringCenter(290, "RESTART VSH");
+			break;
+		case 11:
+			drawSetColour(WHITE, SKYBLUE);
+			drawStringCenter(306, "EXIT");
 			break;
 	}
 }
@@ -121,10 +133,10 @@ static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 	drawSetColour(WHITE, Config_GetVSHColour());
 		
 	drawStringCenter(130, "<- BACK");
-	drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", batteryDisplay? "enabled" : "disabled");
-	drawStringfCenter(178, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
-	drawStringfCenter(194, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
-	drawStringfCenter(210, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+	drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", Menu_Config.battery_keep_display? "enabled" : "disabled");
+	drawStringfCenter(178, "BATTERY PERCENT %s", Menu_Config.battery_percent? "enabled" : "disabled");
+	drawStringfCenter(194, "BATTERY LIFETIME %s", Menu_Config.battery_lifetime? "enabled" : "disabled");
+	drawStringfCenter(210, "BATTERY TEMP %s", Menu_Config.battery_temp? "enabled" : "disabled");
 		
 	switch(selection)
 	{
@@ -134,19 +146,52 @@ static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 			break;
 		case 1:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", batteryDisplay? "enabled" : "disabled");
+			drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", Menu_Config.battery_keep_display? "enabled" : "disabled");
 			break;
 		case 2:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(178, "BATTERY PERCENT %s", batteryPercent? "enabled" : "disabled");
+			drawStringfCenter(178, "BATTERY PERCENT %s", Menu_Config.battery_percent? "enabled" : "disabled");
 			break;
 		case 3:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(194, "BATTERY LIFETIME %s", batteryLifeTime? "enabled" : "disabled");
+			drawStringfCenter(194, "BATTERY LIFETIME %s", Menu_Config.battery_lifetime? "enabled" : "disabled");
 			break;
 		case 4:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(210, "BATTERY TEMP %s", batteryTemp? "enabled" : "disabled");
+			drawStringfCenter(210, "BATTERY TEMP %s", Menu_Config.battery_temp? "enabled" : "disabled");
+			break;
+	}
+}
+
+static SceVoid Menu_DisplayAdvancedMenu(SceVoid)
+{
+	drawSetColour(WHITE, RGB_GREEN);
+	drawStringCenter(100, "ADVANCED MENU");
+		
+	drawSetColour(WHITE, Config_GetVSHColour());
+		
+	drawStringCenter(130, "<- BACK");
+	drawStringfCenter(162, "REFRESH INTERVAL %02d seconds", refresh_rates[Clock_Config.refresh_interval]);
+	drawStringfCenter(178, "KEEP CLOCK DISPLAY %s", Menu_Config.clock_keep_display? "enabled" : "disabled");
+	drawStringfCenter(194, "CLOCK DISPLAY %s", Menu_Config.clock_display? "enabled" : "disabled");
+
+	switch(selection)
+	{
+		case 0:
+			drawSetColour(WHITE, SKYBLUE);
+			drawStringCenter(130, "<- BACK");
+			break;
+		case 1:
+			drawSetColour(WHITE, SKYBLUE);
+			drawStringfCenter(162, "REFRESH INTERVAL %02d seconds", refresh_rates[Clock_Config.refresh_interval]);
+			break;
+		case 2:
+			drawSetColour(WHITE, SKYBLUE);
+			drawStringfCenter(178, "KEEP CLOCK DISPLAY %s", Menu_Config.clock_keep_display? "enabled" : "disabled");
+			break;
+		case 3:
+			drawSetColour(WHITE, SKYBLUE);
+			drawStringfCenter(194, "CLOCK DISPLAY %s", Menu_Config.clock_display? "enabled" : "disabled");
 			break;
 	}
 }
@@ -159,8 +204,8 @@ static SceVoid Menu_DisplayFPSMenu(SceVoid)
 	drawSetColour(WHITE, Config_GetVSHColour());
 		
 	drawStringCenter(130, "<- BACK");
-	drawStringfCenter(162, "KEEP FPS DISPLAY %s", fpsDisplay? "enabled" : "disabled");
-	drawStringfCenter(178, "FPS %s", fps? "enabled" : "disabled");
+	drawStringfCenter(162, "KEEP FPS DISPLAY %s", Menu_Config.fps_keep_display? "enabled" : "disabled");
+	drawStringfCenter(178, "FPS %s", Menu_Config.fps_display? "enabled" : "disabled");
 
 	switch(selection)
 	{
@@ -170,11 +215,11 @@ static SceVoid Menu_DisplayFPSMenu(SceVoid)
 			break;
 		case 1:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(162, "KEEP FPS DISPLAY %s", fpsDisplay? "enabled" : "disabled");
+			drawStringfCenter(162, "KEEP FPS DISPLAY %s", Menu_Config.fps_keep_display? "enabled" : "disabled");
 			break;
 		case 2:
 			drawSetColour(WHITE, SKYBLUE);
-			drawStringfCenter(178, "FPS %s", fps? "enabled" : "disabled");
+			drawStringfCenter(178, "FPS %s", Menu_Config.fps_display? "enabled" : "disabled");
 			break;
 	}
 }
@@ -241,22 +286,26 @@ static SceVoid Menu_DisplayProgramMenu(SceVoid)
 	}
 }
 
-SceVoid Menu_Display(SceBool vertical_blank)
+SceVoid Menu_Display(SceVoid)
 {
-	if (vertical_blank)
-		drawInit();
-	
-	if (showVSH == VSH_MAIN_MENU)
-		Menu_DisplayMainMenu();
-	else if (showVSH == VSH_BATTERY_MENU)
-		Menu_DisplayBatteryMenu();
-	else if (showVSH == VSH_FPS_MENU)
-		Menu_DisplayFPSMenu();
-	else if (showVSH == VSH_PROGRAM_MENU)
-		Menu_DisplayProgramMenu();
-
-	if (vertical_blank)
-		sceDisplayWaitVblankStart();
+	switch(showVSH)
+	{
+		case VSH_MAIN_MENU:
+			Menu_DisplayMainMenu();
+			break;
+		case VSH_BATTERY_MENU:
+			Menu_DisplayBatteryMenu();
+			break;
+		case VSH_ADVANCED_MENU:
+			Menu_DisplayAdvancedMenu();
+			break;
+		case VSH_FPS_MENU:
+			Menu_DisplayFPSMenu();
+			break;
+		case VSH_PROGRAM_MENU:
+			Menu_DisplayProgramMenu();
+			break;
+	}
 }
 
 SceInt Menu_HandleControls(SceUInt32 pad)
@@ -275,39 +324,39 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 			
 		if (selection == 0) 
 		{
-			if ((pad & SCE_CTRL_LEFT) && (c_clock > 0))
+			if ((pad & SCE_CTRL_LEFT) && (Clock_Config.c_clock > 0))
 			{
-				c_clock--;
-				scePowerSetArmClockFrequency(profiles[c_clock][0]);
-				scePowerSetBusClockFrequency(profiles[c_clock][1]);
-				Config_SaveClockConfig(c_clock, g_clock);
+				Clock_Config.c_clock--;
+				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+				Config_SaveClockConfig(Clock_Config);
 				Config_LoadConfig();
 			}
-			else if ((pad & SCE_CTRL_RIGHT) && (c_clock < 3))
+			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.c_clock < 3))
 			{
-				c_clock++;
-				scePowerSetArmClockFrequency(profiles[c_clock][0]);
-				scePowerSetBusClockFrequency(profiles[c_clock][1]);
-				Config_SaveClockConfig(c_clock, g_clock);
+				Clock_Config.c_clock++;
+				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+				Config_SaveClockConfig(Clock_Config);
 				Config_LoadConfig();
 			}
 		}
 		else if (selection == 1)
 		{
-			if ((pad & SCE_CTRL_LEFT) && (g_clock > 0))
+			if ((pad & SCE_CTRL_LEFT) && (Clock_Config.g_clock > 0))
 			{
-				g_clock--;
-				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-				Config_SaveClockConfig(c_clock, g_clock);
+				Clock_Config.g_clock--;
+				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
+				Config_SaveClockConfig(Clock_Config);
 				Config_LoadConfig();
 			}
-			else if ((pad & SCE_CTRL_RIGHT) && (g_clock < 3))
+			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.g_clock < 3))
 			{
-				g_clock++;
-				scePowerSetGpuClockFrequency(profiles[g_clock][2]);
-				scePowerSetGpuXbarClockFrequency(profiles[g_clock][3]);
-				Config_SaveClockConfig(c_clock, g_clock);
+				Clock_Config.g_clock++;
+				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
+				Config_SaveClockConfig(Clock_Config);
 				Config_LoadConfig();
 			}
 		}
@@ -315,22 +364,22 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 		{
 			if (pad & SCE_CTRL_LEFT)
 			{
-				if (colour > 0)
-					colour--;
+				if (Menu_Config.colour > 0)
+					Menu_Config.colour--;
 				else 
-					colour = COLOUR_MAX_ITEMS;
+					Menu_Config.colour = COLOUR_MAX_ITEMS;
 				
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+				Config_SaveMenuConfig(Menu_Config);
 				Config_LoadConfig();
 			}
 			else if (pad & SCE_CTRL_RIGHT)
 			{
-				if (colour < COLOUR_MAX_ITEMS)
-					colour++;
+				if (Menu_Config.colour < COLOUR_MAX_ITEMS)
+					Menu_Config.colour++;
 				else 
-					colour = 0;
+					Menu_Config.colour = 0;
 
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+				Config_SaveMenuConfig(Menu_Config);
 				Config_LoadConfig();
 			}
 		}
@@ -342,22 +391,27 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 		else if ((selection == 4) && (pad & SCE_CTRL_CROSS))
 		{
 			selection = 0;
-			showVSH = VSH_FPS_MENU;
+			showVSH = VSH_ADVANCED_MENU;
 		}
 		else if ((selection == 5) && (pad & SCE_CTRL_CROSS))
 		{
 			selection = 0;
+			showVSH = VSH_FPS_MENU;
+		}
+		else if ((selection == 6) && (pad & SCE_CTRL_CROSS))
+		{
+			selection = 0;
 			showVSH = VSH_PROGRAM_MENU;
 		}
-		else if ((selection == 6) && (pad & SCE_CTRL_CROSS)) 
-			scePowerRequestStandby();
 		else if ((selection == 7) && (pad & SCE_CTRL_CROSS)) 
-			scePowerRequestSuspend();
+			scePowerRequestStandby();
 		else if ((selection == 8) && (pad & SCE_CTRL_CROSS)) 
+			scePowerRequestSuspend();
+		else if ((selection == 9) && (pad & SCE_CTRL_CROSS)) 
 			scePowerRequestColdReset();
-		else if ((selection == 9) && (pad & SCE_CTRL_CROSS))
+		else if ((selection == 10) && (pad & SCE_CTRL_CROSS))
 			Utils_RestartVSH();
-		else if (((selection == 10) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
+		else if (((selection == 11) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
 			selection = 0;
 			showVSH = 0;
@@ -387,23 +441,82 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				switch(selection)
 				{
 					case 1:
-						batteryDisplay = !batteryDisplay;
+						Menu_Config.battery_keep_display = !Menu_Config.battery_keep_display;
 						break;
 					case 2:
-						batteryPercent = !batteryPercent;
+						Menu_Config.battery_percent = !Menu_Config.battery_percent;
 						break;
 					case 3:
-						batteryLifeTime = !batteryLifeTime;
+						Menu_Config.battery_lifetime = !Menu_Config.battery_lifetime;
 						break;
 					case 4:
-						batteryTemp = !batteryTemp;
+						Menu_Config.battery_temp = !Menu_Config.battery_temp;
 						break;
 				}
 
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+				Config_SaveMenuConfig(Menu_Config);
 				Config_LoadConfig();
 			}
 		}
+	}
+	else if (showVSH == VSH_ADVANCED_MENU)
+	{
+		if (pad & SCE_CTRL_DOWN)
+			selection += 1;
+		else if (pad & SCE_CTRL_UP)
+			selection -= 1;
+			
+		if (selection == (ADVANCED_MAX_ITEMS + 1))
+			selection = 0;
+		if (selection == -1)
+			selection = ADVANCED_MAX_ITEMS;
+
+		if (((selection == 0) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
+		{
+			selection = 0;
+			showVSH = VSH_MAIN_MENU;
+		}
+		else if (selection == 1)
+		{
+			if (pad & SCE_CTRL_LEFT)
+			{
+				if (Clock_Config.refresh_interval > 0)
+					Clock_Config.refresh_interval--;
+				else 
+					Clock_Config.refresh_interval = REFRESH_MAX_ITEMS;
+				
+				Config_SaveClockConfig(Clock_Config);
+				Config_LoadConfig();
+			}
+			else if (pad & SCE_CTRL_RIGHT)
+			{
+				if (Clock_Config.refresh_interval < REFRESH_MAX_ITEMS)
+					Clock_Config.refresh_interval++;
+				else 
+					Clock_Config.refresh_interval = 0;
+
+				Config_SaveClockConfig(Clock_Config);
+				Config_LoadConfig();
+			}
+		}
+		else
+		{
+			if ((pad & SCE_CTRL_LEFT) || (pad & SCE_CTRL_RIGHT))
+			{
+				switch(selection)
+				{
+					case 2:
+						Menu_Config.clock_keep_display = !Menu_Config.clock_keep_display;
+						break;
+					case 3:
+						Menu_Config.clock_display = !Menu_Config.clock_display;
+						break;
+				}
+
+				Config_SaveMenuConfig(Menu_Config);
+				Config_LoadConfig();
+			}
+		}	
 	}
 	else if (showVSH == VSH_FPS_MENU)
 	{
@@ -429,14 +542,14 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				switch(selection)
 				{
 					case 1:
-						fpsDisplay = !fpsDisplay;
+						Menu_Config.fps_keep_display = !Menu_Config.fps_keep_display;
 						break;
 					case 2:
-						fps = !fps;
+						Menu_Config.fps_display = !Menu_Config.fps_display;
 						break;
 				}
 
-				Config_SaveMenuConfig(batteryPercent, batteryLifeTime, batteryTemp, batteryDisplay, colour, fps, fpsDisplay);
+				Config_SaveMenuConfig(Menu_Config);
 				Config_LoadConfig();
 			}
 		}
