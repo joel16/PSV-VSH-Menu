@@ -66,3 +66,15 @@ SceVoid Utils_SceFree(SceVoid *mem)
 	if (R_SUCCEEDED(block = sceKernelFindMemBlockByAddr(mem, 1)))
 		sceKernelFreeMemBlock(block);
 }
+
+void Utils_SetMax(SceInt *set, SceInt value, SceInt max)
+{
+	if (*set > max)
+		*set = value;
+}
+
+void Utils_SetMin(SceInt *set, SceInt value, SceInt min)
+{
+	if (*set < min)
+		*set = value;
+}

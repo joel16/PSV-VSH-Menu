@@ -8,7 +8,7 @@
 #define BATTERY_MAX_ITEMS  4
 #define FPS_MAX_ITEMS      2
 #define ADVANCED_MAX_ITEMS 3
-#define REFRESH_MAX_ITEMS  5
+#define REFRESH_MAX_ITEMS  6
 #define COLOUR_MAX_ITEMS   9
 
 static SceInt app_list = 0;
@@ -37,7 +37,7 @@ static char *colourStr[] =
 
 static SceInt refresh_rates[] =
 {
-	5, 10, 20, 30, 45, 60
+	1, 5, 10, 20, 30, 45, 60
 };
 
 static SceVoid Menu_DisplayMainMenu(SceVoid)
@@ -314,14 +314,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 	if (showVSH == VSH_MAIN_MENU) // Main VSH Menu
 	{
 		if (pad & SCE_CTRL_DOWN)
-			selection += 1;
+			selection++;
 		else if (pad & SCE_CTRL_UP)
-			selection -= 1;
+			selection--;
 			
-		if (selection == (MAIN_MAX_ITEMS + 1))
-			selection = 0;
-		if (selection == -1)
-			selection = MAIN_MAX_ITEMS;
+		Utils_SetMax(&selection, 0, MAIN_MAX_ITEMS);
+		Utils_SetMin(&selection, MAIN_MAX_ITEMS, 0);
 			
 		if (selection == 0) 
 		{
@@ -421,14 +419,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 	else if (showVSH == VSH_BATTERY_MENU)
 	{
 		if (pad & SCE_CTRL_DOWN)
-			selection += 1;
+			selection++;
 		else if (pad & SCE_CTRL_UP)
-			selection -= 1;
+			selection--;
 			
-		if (selection == (BATTERY_MAX_ITEMS + 1))
-			selection = 0;
-		if (selection == -1)
-			selection = BATTERY_MAX_ITEMS;
+		Utils_SetMax(&selection, 0, BATTERY_MAX_ITEMS);
+		Utils_SetMin(&selection, BATTERY_MAX_ITEMS, 0);
 		
 		if (((selection == 0) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
@@ -463,14 +459,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 	else if (showVSH == VSH_ADVANCED_MENU)
 	{
 		if (pad & SCE_CTRL_DOWN)
-			selection += 1;
+			selection++;
 		else if (pad & SCE_CTRL_UP)
-			selection -= 1;
-			
-		if (selection == (ADVANCED_MAX_ITEMS + 1))
-			selection = 0;
-		if (selection == -1)
-			selection = ADVANCED_MAX_ITEMS;
+			selection--;
+
+		Utils_SetMax(&selection, 0, ADVANCED_MAX_ITEMS);
+		Utils_SetMin(&selection, ADVANCED_MAX_ITEMS, 0);
 
 		if (((selection == 0) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
@@ -522,14 +516,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 	else if (showVSH == VSH_FPS_MENU)
 	{
 		if (pad & SCE_CTRL_DOWN)
-			selection += 1;
+			selection++;
 		else if (pad & SCE_CTRL_UP)
-			selection -= 1;
-			
-		if (selection == (FPS_MAX_ITEMS + 1))
-			selection = 0;
-		if (selection == -1)
-			selection = FPS_MAX_ITEMS;
+			selection--;
+
+		Utils_SetMax(&selection, 0, FPS_MAX_ITEMS);
+		Utils_SetMin(&selection, FPS_MAX_ITEMS, 0);
 
 		if (((selection == 0) && (pad & SCE_CTRL_CROSS)) || (pad & SCE_CTRL_CIRCLE))
 		{
@@ -559,9 +551,9 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 	else if (showVSH == VSH_PROGRAM_MENU)
 	{
 		if (pad & SCE_CTRL_DOWN)
-			selection += 1;
+			selection++;
 		else if (pad & SCE_CTRL_UP)
-			selection -= 1;
+			selection--;
 			
 		if (selection == (app_list + 1))
 			selection = 0;

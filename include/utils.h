@@ -20,5 +20,7 @@ SceInt Utils_LaunchAppByUriExit(char *titleid);
 SceInt Utils_RestartVSH(SceVoid);
 SceVoid *Utils_SceMalloc(SceSize size);
 SceVoid Utils_SceFree(SceVoid *mem);
+void Utils_SetMax(SceInt *set, SceInt value, SceInt max);
+void Utils_SetMin(SceInt *set, SceInt value, SceInt min);
 
 #endif

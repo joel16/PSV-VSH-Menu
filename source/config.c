@@ -153,7 +153,7 @@ SceInt Config_LoadConfig(SceVoid)
 	{
 		Clock_Config.c_clock = 2; // Default clock
 		Clock_Config.g_clock = 2; // Default clock
-		Clock_Config.refresh_interval = 3; // Default refresh rate = 30 seconds
+		Clock_Config.refresh_interval = 4; // Default refresh rate = 30 seconds
 		Config_SaveClockConfig(Clock_Config);
 	}
 
