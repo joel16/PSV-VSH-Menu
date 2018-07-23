@@ -45,7 +45,7 @@ static SceVoid DisplayFPS(SceVoid)
 			tick = t_tick;
 		}
 
-		drawSetColour(WHITE, Config_GetVSHColour());
+		drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 		drawStringf(0, 528, "FPS: %d", fps_data);
 	}
 	
@@ -93,7 +93,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 	{
 		if (Menu_Config.clock_display)
 		{
-			drawSetColour(WHITE, Config_GetVSHColour());
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 			drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 			drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		}
@@ -114,7 +114,7 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 			Power_DisplayBatteryTemp(32);
 		if (Menu_Config.clock_display)
 		{
-			drawSetColour(WHITE, Config_GetVSHColour());
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 			drawStringf(0, 0, "CPU: %d/%d MHz", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 			drawStringf(0, 16, "GPU: %d/%d MHz", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 		}

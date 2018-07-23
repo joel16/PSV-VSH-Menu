@@ -9,7 +9,7 @@
 #define FPS_MAX_ITEMS      2
 #define ADVANCED_MAX_ITEMS 3
 #define REFRESH_MAX_ITEMS  5
-#define COLOUR_MAX_ITEMS   8
+#define COLOUR_MAX_ITEMS   9
 
 static SceInt app_list = 0;
 SceInt selection = 0;
@@ -31,7 +31,8 @@ static char *colourStr[] =
 	"Purple",
 	"Pink",
 	"Black",
-	"White"
+	"White",
+	"Custom"
 };
 
 static SceInt refresh_rates[] =
@@ -41,10 +42,10 @@ static SceInt refresh_rates[] =
 
 static SceVoid Menu_DisplayMainMenu(SceVoid)
 {
-	drawSetColour(WHITE, RGB_GREEN);
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.title_text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.title_bg_col : RGB_GREEN);
 	drawStringCenter(100, "PSV VSH MENU");
 		
-	drawSetColour(WHITE, Config_GetVSHColour());
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 		
 	if (Clock_Config.c_clock == 2)
 		drawStringCenter(130, "CPU CLOCK default");
@@ -69,57 +70,57 @@ static SceVoid Menu_DisplayMainMenu(SceVoid)
 	switch(selection)
 	{
 		case 0:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			if (Clock_Config.c_clock == 2)
 				drawStringCenter(130, "CPU CLOCK default");
 			else
 				drawStringfCenter(130, "CPU CLOCK %d/%d", scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency());
 			break;
 		case 1:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			if (Clock_Config.g_clock == 2)
 				drawStringCenter(146, "GPU CLOCK default");
 			else
 				drawStringfCenter(146, "GPU CLOCK %d/%d", scePowerGetGpuClockFrequency(), scePowerGetGpuXbarClockFrequency());
 			break;
 		case 2:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(162, "VSH MENU COLOUR %s", colourStr[Menu_Config.colour]);
 			break;
 		case 3:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(178, "BATTERY OPTIONS ->");
 			break;
 		case 4:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(194, "ADVANCED MENU ->");
 			break;
 		case 5:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(210, "FPS SETTINGS ->");
 			break;
 		case 6:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(226, "LOAD PROGRAM ->");
 			break;
 		case 7:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(242, "SHUTDOWN DEVICE");
 			break;
 		case 8:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(258, "SUSPEND DEVICE");
 			break;
 		case 9:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(274, "REBOOT DEVICE");
 			break;
 		case 10:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(290, "RESTART VSH");
 			break;
 		case 11:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(306, "EXIT");
 			break;
 	}
@@ -127,10 +128,10 @@ static SceVoid Menu_DisplayMainMenu(SceVoid)
 
 static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 {
-	drawSetColour(WHITE, RGB_GREEN);
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.title_text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.title_bg_col : RGB_GREEN);
 	drawStringCenter(100, "BATTERY OPTIONS");
 		
-	drawSetColour(WHITE, Config_GetVSHColour());
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 		
 	drawStringCenter(130, "<- BACK");
 	drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", Menu_Config.battery_keep_display? "enabled" : "disabled");
@@ -141,23 +142,23 @@ static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 	switch(selection)
 	{
 		case 0:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(130, "<- BACK");
 			break;
 		case 1:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(162, "KEEP BATTERY DISPLAY %s", Menu_Config.battery_keep_display? "enabled" : "disabled");
 			break;
 		case 2:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(178, "BATTERY PERCENT %s", Menu_Config.battery_percent? "enabled" : "disabled");
 			break;
 		case 3:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(194, "BATTERY LIFETIME %s", Menu_Config.battery_lifetime? "enabled" : "disabled");
 			break;
 		case 4:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(210, "BATTERY TEMP %s", Menu_Config.battery_temp? "enabled" : "disabled");
 			break;
 	}
@@ -165,10 +166,10 @@ static SceVoid Menu_DisplayBatteryMenu(SceVoid)
 
 static SceVoid Menu_DisplayAdvancedMenu(SceVoid)
 {
-	drawSetColour(WHITE, RGB_GREEN);
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.title_text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.title_bg_col : RGB_GREEN);
 	drawStringCenter(100, "ADVANCED MENU");
 		
-	drawSetColour(WHITE, Config_GetVSHColour());
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 		
 	drawStringCenter(130, "<- BACK");
 	drawStringfCenter(162, "REFRESH INTERVAL %02d seconds", refresh_rates[Clock_Config.refresh_interval]);
@@ -178,19 +179,19 @@ static SceVoid Menu_DisplayAdvancedMenu(SceVoid)
 	switch(selection)
 	{
 		case 0:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(130, "<- BACK");
 			break;
 		case 1:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(162, "REFRESH INTERVAL %02d seconds", refresh_rates[Clock_Config.refresh_interval]);
 			break;
 		case 2:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(178, "KEEP CLOCK DISPLAY %s", Menu_Config.clock_keep_display? "enabled" : "disabled");
 			break;
 		case 3:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(194, "CLOCK DISPLAY %s", Menu_Config.clock_display? "enabled" : "disabled");
 			break;
 	}
@@ -198,10 +199,10 @@ static SceVoid Menu_DisplayAdvancedMenu(SceVoid)
 
 static SceVoid Menu_DisplayFPSMenu(SceVoid)
 {
-	drawSetColour(WHITE, RGB_GREEN);
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.title_text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.title_bg_col : RGB_GREEN);
 	drawStringCenter(100, "FPS SETTINGS");
 		
-	drawSetColour(WHITE, Config_GetVSHColour());
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 		
 	drawStringCenter(130, "<- BACK");
 	drawStringfCenter(162, "KEEP FPS DISPLAY %s", Menu_Config.fps_keep_display? "enabled" : "disabled");
@@ -210,15 +211,15 @@ static SceVoid Menu_DisplayFPSMenu(SceVoid)
 	switch(selection)
 	{
 		case 0:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(130, "<- BACK");
 			break;
 		case 1:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(162, "KEEP FPS DISPLAY %s", Menu_Config.fps_keep_display? "enabled" : "disabled");
 			break;
 		case 2:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringfCenter(178, "FPS %s", Menu_Config.fps_display? "enabled" : "disabled");
 			break;
 	}
@@ -226,10 +227,10 @@ static SceVoid Menu_DisplayFPSMenu(SceVoid)
 
 static SceVoid Menu_DisplayProgramMenu(SceVoid)
 {
-	drawSetColour(WHITE, RGB_GREEN);
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.title_text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.title_bg_col : RGB_GREEN);
 	drawStringCenter(100, "LOAD PROGRAM");
 		
-	drawSetColour(WHITE, Config_GetVSHColour());
+	drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.bg_col : Config_GetVSHColour());
 	
 	drawStringCenter(130, "<- BACK");
 	
@@ -245,41 +246,41 @@ static SceVoid Menu_DisplayProgramMenu(SceVoid)
 	switch(selection)
 	{
 		case 0:
-			drawSetColour(WHITE, SKYBLUE);
+			drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 			drawStringCenter(130, "<- BACK");
 			break;
 		case 1:
 			if (strlen(app_title[0]) != 0)
 			{
-				drawSetColour(WHITE, SKYBLUE);
+				drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 				drawStringCenter(162, app_title[0]);
 			}
 			break;
 		case 2:
 			if (strlen(app_title[1]) != 0)
 			{
-				drawSetColour(WHITE, SKYBLUE);
+				drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 				drawStringCenter(178, app_title[1]);
 			}
 			break;
 		case 3:
 			if (strlen(app_title[2]) != 0)
 			{
-				drawSetColour(WHITE, SKYBLUE);
+				drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 				drawStringCenter(194, app_title[2]);
 			}
 			break;
 		case 4:
 			if (strlen(app_title[3]) != 0)
 			{
-				drawSetColour(WHITE, SKYBLUE);
+				drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 				drawStringCenter(210, app_title[3]);
 			}
 			break;
 		case 5:
 			if (strlen(app_title[4]) != 0)
 			{
-				drawSetColour(WHITE, SKYBLUE);
+				drawSetColour(Menu_Config.colour == 9? Custom_Colour.text_col : WHITE, Menu_Config.colour == 9? Custom_Colour.cursor_col : SKYBLUE);
 				drawStringCenter(226, app_title[4]);
 			}
 			break;

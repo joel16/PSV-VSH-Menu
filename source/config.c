@@ -5,7 +5,7 @@
 #include "fs.h"
 #include "utils.h"
 
-const char *menuConfig =
+static const char *menuConfig =
 	"display_battery_percent = %d\n"
 	"display_battery_lifetime = %d\n"
 	"display_battery_temp = %d\n"
@@ -16,12 +16,19 @@ const char *menuConfig =
 	"display_clock = %d\n"
 	"display_clock_data = %d\n";
 
-const char *clockConfig =
+static const char *customColourConfig =
+	"TITLE_BG_COL = %x\n"
+	"BG_COL = %x\n"
+	"CURSOR_COL = %x\n"
+	"TITLE_TEXT_COL = %x\n"
+	"TEXT_COL = %x\n";
+
+static const char *clockConfig =
 	"CPU_clock = %d\n"
 	"GPU_clock = %d\n"
 	"Refresh_interval = %d\n";
 	
-const char *launcherConfig =
+static const char *launcherConfig =
 	"[0] title: %s titleID: %s\n"
 	"[1] title: %s titleID: %s\n"
 	"[2] title: %s titleID: %s\n"
@@ -48,6 +55,29 @@ SceInt Config_SaveMenuConfig(Menu_Config_t Menu_Config)
 	
 	Utils_SceFree(buf);
 	Utils_SceFree(menu_config_path);
+	return 0;
+}
+
+static SceInt Config_SaveColourConfig(Custom_Colour_t Custom_Colour)
+{
+	SceInt ret = 0;
+	
+	char *colour_config_path = (char *)Utils_SceMalloc(39);
+	snprintf(colour_config_path, 39, "ur0:/data/vsh/custom_colour_config.cfg");
+	
+	char *buf = (char *)Utils_SceMalloc(256);
+	SceInt len = snprintf(buf, 256, customColourConfig, Custom_Colour.title_bg_col, Custom_Colour.bg_col, Custom_Colour.cursor_col, 
+		Custom_Colour.title_text_col, Custom_Colour.text_col);
+	
+	if (R_FAILED(ret = FS_WriteFile(colour_config_path, buf, len)))
+	{
+		Utils_SceFree(buf);
+		Utils_SceFree(colour_config_path);
+		return ret;
+	}
+	
+	Utils_SceFree(buf);
+	Utils_SceFree(colour_config_path);
 	return 0;
 }
 
@@ -112,24 +142,36 @@ static SceInt Config_SaveLauncherConfig()
 SceInt Config_LoadConfig(SceVoid)
 {
 	SceInt ret = 0;
+
+	char *config_path = (char *)Utils_SceMalloc(39);
+	char *buf = (char *)Utils_SceMalloc(256);
 	
-	char *game_config_path = (char *)Utils_SceMalloc(35);
-	char *menu_config_path = (char *)Utils_SceMalloc(25);
-	char *launcher_config_path = (char *)Utils_SceMalloc(27);
-	
-	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
-	snprintf(menu_config_path, 25, "ur0:/data/vsh/config.cfg");
-	snprintf(launcher_config_path, 27, "ur0:/data/vsh/launcher.cfg");
-	
-	if (!(FS_FileExists(game_config_path)))
+	// Application config
+	snprintf(config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
+
+	if (!(FS_FileExists(config_path)))
 	{
 		Clock_Config.c_clock = 2; // Default clock
 		Clock_Config.g_clock = 2; // Default clock
 		Clock_Config.refresh_interval = 3; // Default refresh rate = 30 seconds
 		Config_SaveClockConfig(Clock_Config);
 	}
-	
-	if (!(FS_FileExists(menu_config_path)))
+
+	if (R_FAILED(ret = FS_ReadFile(config_path, buf, 128)))
+	{
+		Utils_SceFree(config_path);
+		Utils_SceFree(buf);
+		return ret;
+	}
+
+	sscanf(buf, clockConfig, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
+	memset(config_path, 0, 39);
+	memset(config_path, 0, 256);
+
+	// Menu config
+	snprintf(config_path, 25, "ur0:/data/vsh/config.cfg");
+
+	if (!(FS_FileExists(config_path)))
 	{
 		// set these to the following by default:
 		Menu_Config.colour = 0;
@@ -143,59 +185,62 @@ SceInt Config_LoadConfig(SceVoid)
 		Menu_Config.clock_keep_display = SCE_FALSE;
 		Config_SaveMenuConfig(Menu_Config);
 	}
+
+	if (R_FAILED(ret = FS_ReadFile(config_path, buf, 256)))
+	{
+		Utils_SceFree(config_path);
+		Utils_SceFree(buf);
+		return ret;
+	}
+
+	sscanf(buf, menuConfig, &Menu_Config.battery_percent, &Menu_Config.battery_lifetime, &Menu_Config.battery_temp, &Menu_Config.battery_keep_display, 
+		&Menu_Config.colour, &Menu_Config.fps_display, &Menu_Config.fps_keep_display, &Menu_Config.clock_display, &Menu_Config.clock_keep_display);
+	memset(config_path, 0, 39);
+	memset(config_path, 0, 256);
+
+	// Custom colour config
+	snprintf(config_path, 39, "ur0:/data/vsh/custom_colour_config.cfg");
+
+	if (!(FS_FileExists(config_path)))
+	{
+		Custom_Colour.title_bg_col = 0x00333333;
+		Custom_Colour.bg_col = 0x00333333;
+		Custom_Colour.cursor_col = 0x80FFFFFF;
+		Custom_Colour.title_text_col = 0x0000FF00;
+		Custom_Colour.text_col = 0x0000FF00;
+		Config_SaveColourConfig(Custom_Colour);
+	}
+
+	if (R_FAILED(ret = FS_ReadFile(config_path, buf, 256)))
+	{
+		Utils_SceFree(config_path);
+		Utils_SceFree(buf);
+		return ret;
+	}
+
+	sscanf(buf, customColourConfig, &Custom_Colour.title_bg_col, &Custom_Colour.bg_col, &Custom_Colour.cursor_col, &Custom_Colour.title_text_col,
+		&Custom_Colour.text_col);
+	memset(config_path, 0, 39);
+	memset(config_path, 0, 256);
+
+	// Launcher config
+	snprintf(config_path, 27, "ur0:/data/vsh/launcher.cfg");
 	
-	if (!(FS_FileExists(launcher_config_path)))	
+	if (!(FS_FileExists(config_path)))	
 		Config_SaveLauncherConfig();
 	
-	char *buf1 = (char *)Utils_SceMalloc(128);
-	char *buf2 = (char *)Utils_SceMalloc(256);
-	char *buf3 = (char *)Utils_SceMalloc(256);
-	
-	if (R_FAILED(ret = FS_ReadFile(game_config_path, buf1, 128)))
+	if (R_FAILED(ret = FS_ReadFile(config_path, buf, 256)))
 	{
-		Utils_SceFree(buf3);
-		Utils_SceFree(buf2);
-		Utils_SceFree(buf1);
-		Utils_SceFree(menu_config_path);
-		Utils_SceFree(game_config_path);
-		Utils_SceFree(launcher_config_path);
+		Utils_SceFree(config_path);
+		Utils_SceFree(buf);
 		return ret;
 	}
-	
-	if (R_FAILED(ret = FS_ReadFile(menu_config_path, buf2, 256)))
-	{
-		Utils_SceFree(buf3);
-		Utils_SceFree(buf2);
-		Utils_SceFree(buf1);
-		Utils_SceFree(menu_config_path);
-		Utils_SceFree(game_config_path);
-		Utils_SceFree(launcher_config_path);
-		return ret;
-	}
-	
-	if (R_FAILED(ret = FS_ReadFile(launcher_config_path, buf3, 256)))
-	{
-		Utils_SceFree(buf3);
-		Utils_SceFree(buf2);
-		Utils_SceFree(buf1);
-		Utils_SceFree(menu_config_path);
-		Utils_SceFree(game_config_path);
-		Utils_SceFree(launcher_config_path);
-		return ret;
-	}
-	
-	sscanf(buf1, clockConfig, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
-	sscanf(buf2, menuConfig, &Menu_Config.battery_percent, &Menu_Config.battery_lifetime, &Menu_Config.battery_temp, &Menu_Config.battery_keep_display, 
-		&Menu_Config.colour, &Menu_Config.fps_display, &Menu_Config.fps_keep_display, &Menu_Config.clock_display, &Menu_Config.clock_keep_display);
-	sscanf(buf3, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
+
+	sscanf(buf, launcherConfig, app_title[0], app_titleID[0], app_title[1], app_titleID[1], 
 		app_title[2], app_titleID[2], app_title[3], app_titleID[3], app_title[4], app_titleID[4]);
 	
-	Utils_SceFree(buf3);
-	Utils_SceFree(buf2);
-	Utils_SceFree(buf1);
-	Utils_SceFree(menu_config_path);
-	Utils_SceFree(game_config_path);
-	Utils_SceFree(launcher_config_path);
+	Utils_SceFree(config_path);
+	Utils_SceFree(buf);
 	return 0;
 }
 

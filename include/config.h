@@ -18,6 +18,15 @@ typedef struct
 
 typedef struct
 {
+    SceUInt32 title_bg_col;
+    SceUInt32 bg_col;
+    SceUInt32 cursor_col;
+    SceUInt32 title_text_col;
+    SceUInt32 text_col;
+} Custom_Colour_t;
+
+typedef struct
+{
 	SceInt c_clock;
 	SceInt g_clock;
 	SceInt refresh_interval;
@@ -25,6 +34,7 @@ typedef struct
 
 Menu_Config_t Menu_Config;
 Clock_Config_t Clock_Config;
+Custom_Colour_t Custom_Colour;
 
 char titleID[16];
 char app_title[5][50], app_titleID[5][50];
