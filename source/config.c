@@ -66,8 +66,8 @@ static SceInt Config_SaveColourConfig(Custom_Colour_t Custom_Colour)
 	char *colour_config_path = (char *)Utils_SceMalloc(39);
 	snprintf(colour_config_path, 39, "ur0:/data/vsh/custom_colour_config.cfg");
 	
-	char *buf = (char *)Utils_SceMalloc(256);
-	SceInt len = snprintf(buf, 256, customColourConfig, Custom_Colour.title_bg_col, Custom_Colour.bg_col, Custom_Colour.cursor_col, 
+	char *buf = (char *)Utils_SceMalloc(128);
+	SceInt len = snprintf(buf, 128, customColourConfig, Custom_Colour.title_bg_col, Custom_Colour.bg_col, Custom_Colour.cursor_col, 
 		Custom_Colour.title_text_col, Custom_Colour.text_col);
 	
 	if (R_FAILED(ret = FS_WriteFile(colour_config_path, buf, len)))

@@ -20,25 +20,8 @@ SceInt profile_game[] = {333, 222, 166, 166};
 SceInt profile_max_performance[] = {444, 222, 222, 166};
 
 SceInt *profiles[4] = {profile_max_battery, profile_balance, profile_game, profile_max_performance};
-
-static char *colourStr[] = 
-{
-	"Red",
-	"Green",
-	"Blue",
-	"Yellow",
-	"Orange",
-	"Purple",
-	"Pink",
-	"Black",
-	"White",
-	"Custom"
-};
-
-static SceInt refresh_rates[] =
-{
-	1, 5, 10, 20, 30, 45, 60
-};
+static char *colourStr[] = {"Red", "Green", "Blue", "Yellow", "Orange", "Purple", "Pink", "Black", "White", "Custom"};
+static SceInt refresh_rates[] = { 1, 5, 10, 20, 30, 45, 60 };
 
 static SceVoid Menu_DisplayMainMenu(SceVoid)
 {
@@ -328,7 +311,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.c_clock--;
 				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
 				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
-				Clock_Config.clock_set = SCE_TRUE;
+
+				if (Clock_Config.c_clock != 2)
+					Clock_Config.clock_set = SCE_TRUE;
+				else
+					Clock_Config.clock_set = SCE_FALSE;
+
 				Config_SaveClockConfig(Clock_Config);
 			}
 			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.c_clock < 3))
@@ -336,7 +324,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.c_clock++;
 				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
 				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
-				Clock_Config.clock_set = SCE_TRUE;
+				
+				if (Clock_Config.c_clock != 2)
+					Clock_Config.clock_set = SCE_TRUE;
+				else
+					Clock_Config.clock_set = SCE_FALSE;
+
 				Config_SaveClockConfig(Clock_Config);
 			}
 		}
@@ -347,7 +340,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.g_clock--;
 				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
 				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
-				Clock_Config.clock_set = SCE_TRUE;
+				
+				if (Clock_Config.c_clock != 2)
+					Clock_Config.clock_set = SCE_TRUE;
+				else
+					Clock_Config.clock_set = SCE_FALSE;
+
 				Config_SaveClockConfig(Clock_Config);
 			}
 			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.g_clock < 3))
@@ -355,7 +353,12 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.g_clock++;
 				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
 				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
-				Clock_Config.clock_set = SCE_TRUE;
+				
+				if (Clock_Config.c_clock != 2)
+					Clock_Config.clock_set = SCE_TRUE;
+				else
+					Clock_Config.clock_set = SCE_FALSE;
+
 				Config_SaveClockConfig(Clock_Config);
 			}
 		}
