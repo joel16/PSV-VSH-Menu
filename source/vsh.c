@@ -59,20 +59,23 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 	
 	drawSetFrameBuf(pParam);
 
-	if (timer == 0)
-		timer = sceKernelGetProcessTimeWide();
-	else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? Config_GetInterval() : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
+	if (Clock_Config.clock_set)
 	{
-		// if current clock state don't match the ones in config -> re set the desired clock config.
-		if ((scePowerGetArmClockFrequency() != profiles[Clock_Config.c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[Clock_Config.c_clock][1]) || 
-			(scePowerGetGpuClockFrequency() != profiles[Clock_Config.g_clock][2]) || (scePowerGetGpuXbarClockFrequency() != profiles[Clock_Config.g_clock][3]))
+		if (timer == 0)
+			timer = sceKernelGetProcessTimeWide();
+		else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? Config_GetInterval() : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
 		{
-			scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
-			scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
-			scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
-			scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
-			timer = 0;
-			isConfigSet = SCE_TRUE; // Once this is true check if the clock states have changed in 30 second intervals
+			// if current clock state don't match the ones in config -> re set the desired clock config.
+			if ((scePowerGetArmClockFrequency() != profiles[Clock_Config.c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[Clock_Config.c_clock][1]) || 
+				(scePowerGetGpuClockFrequency() != profiles[Clock_Config.g_clock][2]) || (scePowerGetGpuXbarClockFrequency() != profiles[Clock_Config.g_clock][3]))
+			{
+				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
+				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
+				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
+				timer = 0;
+				isConfigSet = SCE_TRUE; // Once this is true check if the clock states have changed in 30 second intervals
+			}
 		}
 	}
 

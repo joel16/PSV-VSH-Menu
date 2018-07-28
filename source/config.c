@@ -24,6 +24,7 @@ static const char *customColourConfig =
 	"TEXT_COL = %x\n";
 
 static const char *clockConfig =
+	"CLOCK_SET = %d\n"
 	"CPU_clock = %d\n"
 	"GPU_clock = %d\n"
 	"Refresh_interval = %d\n";
@@ -89,7 +90,7 @@ SceInt Config_SaveClockConfig(Clock_Config_t Clock_Config)
 	snprintf(game_config_path, 35, "ur0:/data/vsh/titles/%s.cfg", titleID);
 	
 	char *buf = (char *)Utils_SceMalloc(128);
-	SceInt len = snprintf(buf, 128, clockConfig, Clock_Config.c_clock, Clock_Config.g_clock, Clock_Config.refresh_interval);
+	SceInt len = snprintf(buf, 128, clockConfig, Clock_Config.clock_set, Clock_Config.c_clock, Clock_Config.g_clock, Clock_Config.refresh_interval);
 	
 	if (R_FAILED(ret = FS_WriteFile(game_config_path, buf, len)))
 	{
@@ -151,6 +152,7 @@ SceInt Config_LoadConfig(SceVoid)
 
 	if (!(FS_FileExists(config_path)))
 	{
+		Clock_Config.clock_set = SCE_FALSE;
 		Clock_Config.c_clock = 2; // Default clock
 		Clock_Config.g_clock = 2; // Default clock
 		Clock_Config.refresh_interval = 4; // Default refresh rate = 30 seconds
@@ -164,7 +166,7 @@ SceInt Config_LoadConfig(SceVoid)
 		return ret;
 	}
 
-	sscanf(buf, clockConfig, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
+	sscanf(buf, clockConfig, &Clock_Config.clock_set, &Clock_Config.c_clock, &Clock_Config.g_clock, &Clock_Config.refresh_interval);
 	memset(config_path, 0, 39);
 	memset(buf, 0, 256);
 

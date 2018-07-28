@@ -27,6 +27,7 @@ typedef struct
 
 typedef struct
 {
+	SceBool clock_set;
 	SceInt c_clock;
 	SceInt g_clock;
 	SceInt refresh_interval;

@@ -328,16 +328,16 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.c_clock--;
 				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
 				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+				Clock_Config.clock_set = SCE_TRUE;
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.c_clock < 3))
 			{
 				Clock_Config.c_clock++;
 				scePowerSetArmClockFrequency(profiles[Clock_Config.c_clock][0]);
 				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
+				Clock_Config.clock_set = SCE_TRUE;
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 		}
 		else if (selection == 1)
@@ -347,16 +347,16 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				Clock_Config.g_clock--;
 				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
 				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
+				Clock_Config.clock_set = SCE_TRUE;
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 			else if ((pad & SCE_CTRL_RIGHT) && (Clock_Config.g_clock < 3))
 			{
 				Clock_Config.g_clock++;
 				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
 				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
+				Clock_Config.clock_set = SCE_TRUE;
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 		}
 		else if (selection == 2)
@@ -369,7 +369,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 					Menu_Config.colour = COLOUR_MAX_ITEMS;
 				
 				Config_SaveMenuConfig(Menu_Config);
-				Config_LoadConfig();
 			}
 			else if (pad & SCE_CTRL_RIGHT)
 			{
@@ -379,7 +378,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 					Menu_Config.colour = 0;
 
 				Config_SaveMenuConfig(Menu_Config);
-				Config_LoadConfig();
 			}
 		}
 		else if ((selection == 3) && (pad & SCE_CTRL_CROSS))
@@ -452,7 +450,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				}
 
 				Config_SaveMenuConfig(Menu_Config);
-				Config_LoadConfig();
 			}
 		}
 	}
@@ -481,7 +478,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 					Clock_Config.refresh_interval = REFRESH_MAX_ITEMS;
 				
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 			else if (pad & SCE_CTRL_RIGHT)
 			{
@@ -491,7 +487,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 					Clock_Config.refresh_interval = 0;
 
 				Config_SaveClockConfig(Clock_Config);
-				Config_LoadConfig();
 			}
 		}
 		else
@@ -509,7 +504,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				}
 
 				Config_SaveMenuConfig(Menu_Config);
-				Config_LoadConfig();
 			}
 		}	
 	}
@@ -543,7 +537,6 @@ SceInt Menu_HandleControls(SceUInt32 pad)
 				}
 
 				Config_SaveMenuConfig(Menu_Config);
-				Config_LoadConfig();
 			}
 		}
 
