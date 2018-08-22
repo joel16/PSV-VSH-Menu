@@ -59,11 +59,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 	
 	drawSetFrameBuf(pParam);
 
-	if (Clock_Config.clock_set)
+	if (timer == 0)
+		timer = sceKernelGetProcessTimeWide();
+	else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? Config_GetInterval() : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
 	{
-		if (timer == 0)
-			timer = sceKernelGetProcessTimeWide();
-		else if ((sceKernelGetProcessTimeWide() - timer) > (isConfigSet? Config_GetInterval() : CLOCK_SET_DELAY_INIT)) // Check in 5 seconds initially
+		if (Clock_Config.clock_set) // As long as VSH doesn't report default
 		{
 			// if current clock state don't match the ones in config -> re set the desired clock config.
 			if ((scePowerGetArmClockFrequency() != profiles[Clock_Config.c_clock][0]) || (scePowerGetBusClockFrequency() != profiles[Clock_Config.c_clock][1]) || 
@@ -73,10 +73,11 @@ SceInt sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, SceDispla
 				scePowerSetBusClockFrequency(profiles[Clock_Config.c_clock][1]);
 				scePowerSetGpuClockFrequency(profiles[Clock_Config.g_clock][2]);
 				scePowerSetGpuXbarClockFrequency(profiles[Clock_Config.g_clock][3]);
-				timer = 0;
 				isConfigSet = SCE_TRUE; // Once this is true check if the clock states have changed in 30 second intervals
 			}
 		}
+		
+		timer = 0;
 	}
 
 	if ((Menu_Config.battery_keep_display) && (showVSH == 0))
