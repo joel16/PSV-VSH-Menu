@@ -1,6 +1,7 @@
 # PSV-VSH-Menu ![Github latest downloads](https://img.shields.io/github/downloads/joel16/PSV-VSH-Menu/total.svg)
 A VSH menu taiHEN plugin for the PS VITA games and homebrews. Currently does not work in SceShell.
 
+# This plugin is no longer maintained. Please use something else or don't use it. Any issues reported will be ignored.
 
 Features
 --------------------------------------------------------------------------------
